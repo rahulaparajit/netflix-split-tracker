@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Plan Ledger</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#121110;
+    --surface:#1b1917;
+    --surface-2:#221f1c;
+    --ink:#ede9e2;
+    --ink-dim:#988f80;
+    --accent:#e1362b;
+    --accent-soft:rgba(225,54,43,.14);
+    --gold:#d8a657;
+    --gold-soft:rgba(216,166,87,.14);
+    --line:#322d27;
+    --radius:10px;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'IBM Plex Sans',sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px;}
+
+  /* ---- Header / stub ---- */
+  .stub{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:28px 28px 22px;
+    position:relative;
+    overflow:hidden;
+  }
+  .stub::before{
+    content:"";
+    position:absolute;
+    left:0;right:0;bottom:0;
+    height:0;
+    border-top:2px dashed var(--line);
+  }
+  .stub-eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.14em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+  }
+  .stub-title{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:28px;
+    margin:6px 0 2px;
+  }
+  .stub-meta{
+    color:var(--ink-dim);
+    font-size:13px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .stub-total{
+    margin-top:18px;
+    display:flex;
+    align-items:baseline;
+    gap:10px;
+  }
+  .stub-total .amount{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:40px;
+    color:var(--accent);
+  }
+  .stub-total .label{color:var(--ink-dim);font-size:13px;}
+
+  /* ---- Split bar (signature element) ---- */
+  .split-bar{
+    display:flex;
+    height:34px;
+    border-radius:6px;
+    overflow:hidden;
+    margin-top:20px;
+    border:1px solid var(--line);
+  }
+  .split-seg{
+    position:relative;
+    border-right:1px solid var(--bg);
+    min-width:2px;
+    transition:filter .15s ease;
+  }
+  .split-seg:last-child{border-right:none;}
+  .split-seg.unpaid{
+    background-image:repeating-linear-gradient(135deg, var(--surface-2), var(--surface-2) 6px, #171412 6px, #171412 12px);
+  }
+  .split-seg.paid{ background:var(--gold-soft); }
+  .split-legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px 18px;
+    margin-top:12px;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+  .split-legend span.dot{
+    display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;
+  }
+
+  /* ---- Section headers ---- */
+  .section-head{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin:34px 0 12px;
+  }
+  .section-head h2{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:15px;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--ink-dim);
+    margin:0;
+  }
+
+  /* ---- Member ledger rows ---- */
+  .ledger{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow:hidden;
+  }
+  .row{
+    display:grid;
+    grid-template-columns:1fr auto auto;
+    gap:14px;
+    align-items:center;
+    padding:14px 18px;
+    background:var(--surface);
+    border-bottom:1px solid var(--line);
+  }
+  .row:last-child{border-bottom:none;}
+  .row .name{font-weight:500;}
+  .row .amount{
+    font-family:'JetBrains Mono',monospace;
+    font-size:14px;
+    color:var(--ink);
+    text-align:right;
+    min-width:70px;
+  }
+  .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    padding:4px 8px;
+    border-radius:100px;
+    white-space:nowrap;
+  }
+  .tag.paid{background:var(--gold-soft);color:var(--gold);}
+  .tag.unpaid{background:var(--accent-soft);color:var(--accent);}
+
+  /* ---- Buttons ---- */
+  button{
+    font-family:'IBM Plex Sans',sans-serif;
+    font-size:13px;
+    cursor:pointer;
+    border-radius:7px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--ink);
+    padding:9px 14px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  button:hover{border-color:#4a4238;}
+  button:focus-visible, input:focus-visible, select:focus-visible{
+    outline:2px solid var(--gold);
+    outline-offset:1px;
+  }
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500;}
+  button.primary:hover{background:#c72c22;}
+  button.ghost{background:transparent;}
+  button.small{padding:5px 10px;font-size:12px;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  /* ---- Admin panel ---- */
+  .admin-toggle{
+    display:flex;justify-content:flex-end;gap:8px;margin-bottom:8px;
+  }
+  .panel{
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    background:var(--surface);
+    padding:20px;
+    margin-top:10px;
+  }
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;font-size:12px;color:var(--ink-dim);margin-bottom:5px;
+    font-family:'JetBrains Mono',monospace;letter-spacing:.03em;
+  }
+  .field input, .field select{
+    width:100%;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    border-radius:6px;
+    padding:9px 10px;
+    font-size:14px;
+    font-family:'IBM Plex Sans',sans-serif;
+  }
+  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .member-edit-row{
+    display:grid;
+    grid-template-columns:1fr 100px 90px auto;
+    gap:10px;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .member-edit-row input{
+    background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
+    border-radius:6px;padding:8px 9px;font-size:13px;width:100%;
+  }
+  .status-msg{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:10px 12px;
+    border-radius:6px;
+    margin-top:12px;
+  }
+  .status-msg.ok{background:var(--gold-soft);color:var(--gold);}
+  .status-msg.err{background:var(--accent-soft);color:var(--accent);}
+  .status-msg.info{background:var(--surface-2);color:var(--ink-dim);}
+
+  .empty{
+    text-align:center;padding:40px 20px;color:var(--ink-dim);font-size:13px;
+  }
+  .footer-note{
+    margin-top:40px;text-align:center;color:var(--ink-dim);font-size:11.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  @media (max-width:520px){
+    .grid-2{grid-template-columns:1fr;}
+    .member-edit-row{grid-template-columns:1fr 1fr;}
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="stub">
+    <div class="stub-eyebrow">Shared subscription · updated <span id="lastUpdated">—</span></div>
+    <div class="stub-title" id="planName">Loading…</div>
+    <div class="stub-meta" id="planMeta"></div>
+    <div class="stub-total">
+      <span class="amount" id="planTotal">—</span>
+      <span class="label" id="planCurrency"></span>
+    </div>
+    <div class="split-bar" id="splitBar"></div>
+    <div class="split-legend" id="splitLegend"></div>
+  </div>
+
+  <div class="admin-toggle">
+    <button id="loginBtn" class="small">Admin login</button>
+    <button id="logoutBtn" class="small ghost" style="display:none;">Log out</button>
+  </div>
+
+  <div class="section-head">
+    <h2>Members</h2>
+    <button id="editBtn" class="small" style="display:none;">Edit</button>
+  </div>
+  <div class="ledger" id="memberLedger">
+    <div class="empty">Loading member data…</div>
+  </div>
+
+  <div class="panel" id="editPanel" style="display:none;"></div>
+
+  <div class="footer-note">Data lives in this repo's <code>data.json</code>, edited via the GitHub API.</div>
+</div>
+
+<script>
+/* ======================= CONFIG ======================= *
+ * Update these three values to point at YOUR repo before  *
+ * deploying to GitHub Pages. Owner/repo/path are public,   *
+ * so it's fine to have them visible in this file.          *
+ * ======================================================= */
+const CONFIG = {
+  owner: "YOUR_GITHUB_USERNAME",
+  repo: "YOUR_REPO_NAME",
+  path: "data.json",
+  branch: "main"
+};
+/* ======================================================= */
+
+const API_BASE = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/contents/${CONFIG.path}`;
+const TOKEN_KEY = "planLedger_token";
+
+let currentData = null;
+let currentSha = null;
+let isEditing = false;
+
+const els = {
+  lastUpdated: document.getElementById("lastUpdated"),
+  planName: document.getElementById("planName"),
+  planMeta: document.getElementById("planMeta"),
+  planTotal: document.getElementById("planTotal"),
+  planCurrency: document.getElementById("planCurrency"),
+  splitBar: document.getElementById("splitBar"),
+  splitLegend: document.getElementById("splitLegend"),
+  memberLedger: document.getElementById("memberLedger"),
+  loginBtn: document.getElementById("loginBtn"),
+  logoutBtn: document.getElementById("logoutBtn"),
+  editBtn: document.getElementById("editBtn"),
+  editPanel: document.getElementById("editPanel"),
+};
+
+const SEG_COLORS = ["#e1362b","#d8a657","#7e9cd8","#7ec98f","#c98fd8","#d8c47e","#8fd8c9","#d87e9c"];
+
+function getToken(){ return localStorage.getItem(TOKEN_KEY); }
+function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
+function clearToken(){ localStorage.removeItem(TOKEN_KEY); }
+
+function b64EncodeUnicode(str){
+  return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
+    (match, p1) => String.fromCharCode(parseInt(p1, 16))));
+}
+function b64DecodeUnicode(str){
+  return decodeURIComponent(atob(str).split("").map(c =>
+    "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2)).join(""));
+}
+
+function fmtMoney(n, currency){
+  const num = Number(n || 0);
+  return `${currency || ""}${num.toLocaleString(undefined,{maximumFractionDigits:2})}`;
+}
+
+async function loadData(){
+  els.memberLedger.innerHTML = `<div class="empty">Loading member data…</div>`;
+  try{
+    const headers = {"Accept":"application/vnd.github+json"};
+    const token = getToken();
+    if(token) headers["Authorization"] = `Bearer ${token}`;
+    const res = await fetch(`${API_BASE}?ref=${CONFIG.branch}&_=${Date.now()}`, {headers});
+    if(!res.ok){
+      if(res.status === 404){
+        renderEmptyState();
+        return;
+      }
+      throw new Error(`GitHub API error: ${res.status}`);
+    }
+    const json = await res.json();
+    currentSha = json.sha;
+    currentData = JSON.parse(b64DecodeUnicode(json.content.replace(/\n/g,"")));
+    render();
+  }catch(err){
+    els.memberLedger.innerHTML = `<div class="empty">Couldn't load data.json — ${err.message}</div>`;
+  }
+}
+
+function renderEmptyState(){
+  currentData = {
+    plan:{name:"New Plan", totalCost:0, currency:"$", billingDate:"", notes:""},
+    members:[],
+    lastUpdated:null
+  };
+  currentSha = null;
+  render();
+  els.memberLedger.innerHTML = `<div class="empty">No data.json found yet in the repo. Log in as admin and save once to create it.</div>`;
+}
+
+function render(){
+  const {plan, members, lastUpdated} = currentData;
+  els.planName.textContent = plan.name || "Untitled plan";
+  els.planMeta.textContent = plan.billingDate ? `Next billing · ${plan.billingDate}` : "";
+  els.planTotal.textContent = fmtMoney(plan.totalCost, plan.currency);
+  els.planCurrency.textContent = "total / cycle";
+  els.lastUpdated.textContent = lastUpdated ? new Date(lastUpdated).toLocaleDateString() : "never";
+
+  renderSplitBar(plan, members);
+  renderLedger(members, plan.currency);
+
+  if(isEditing) renderEditPanel();
+}
+
+function renderSplitBar(plan, members){
+  els.splitBar.innerHTML = "";
+  els.splitLegend.innerHTML = "";
+  const total = members.reduce((s,m) => s + Number(m.share || 0), 0) || 1;
+  members.forEach((m, i) => {
+    const pct = (Number(m.share || 0) / total) * 100;
+    const color = SEG_COLORS[i % SEG_COLORS.length];
+    const seg = document.createElement("div");
+    seg.className = `split-seg ${m.paid ? "paid" : "unpaid"}`;
+    seg.style.width = `${pct}%`;
+    if(m.paid) seg.style.background = color;
+    seg.title = `${m.name}: ${fmtMoney(m.share, plan.currency)} (${m.paid ? "paid" : "unpaid"})`;
+    els.splitBar.appendChild(seg);
+
+    const legendItem = document.createElement("div");
+    legendItem.innerHTML = `<span class="dot" style="background:${m.paid ? color : 'transparent'};border:1px solid ${color};"></span>${m.name} · ${fmtMoney(m.share, plan.currency)}`;
+    els.splitLegend.appendChild(legendItem);
+  });
+  if(members.length === 0){
+    els.splitBar.style.display = "none";
+  } else {
+    els.splitBar.style.display = "flex";
+  }
+}
+
+function renderLedger(members, currency){
+  if(!members || members.length === 0){
+    els.memberLedger.innerHTML = `<div class="empty">No members added yet.</div>`;
+    return;
+  }
+  els.memberLedger.innerHTML = "";
+  members.forEach(m => {
+    const row = document.createElement("div");
+    row.className = "row";
+    row.innerHTML = `
+      <div class="name">${escapeHtml(m.name)}</div>
+      <div class="amount">${fmtMoney(m.share, currency)}</div>
+      <div class="tag ${m.paid ? "paid" : "unpaid"}">${m.paid ? "Paid" : "Unpaid"}</div>
+    `;
+    els.memberLedger.appendChild(row);
+  });
+}
+
+function escapeHtml(str){
+  const d = document.createElement("div");
+  d.textContent = str || "";
+  return d.innerHTML;
+}
+
+/* ---------------- Admin: login / logout ---------------- */
+els.loginBtn.addEventListener("click", () => {
+  const token = prompt(
+    "Paste your GitHub personal access token.\n\nIt's stored only in this browser's localStorage and used to call the GitHub API directly from this page."
+  );
+  if(token){
+    setToken(token.trim());
+    updateAdminUI();
+    loadData();
+  }
+});
+els.logoutBtn.addEventListener("click", () => {
+  clearToken();
+  isEditing = false;
+  updateAdminUI();
+  els.editPanel.style.display = "none";
+  loadData();
+});
+function updateAdminUI(){
+  const loggedIn = !!getToken();
+  els.loginBtn.style.display = loggedIn ? "none" : "inline-block";
+  els.logoutBtn.style.display = loggedIn ? "inline-block" : "none";
+  els.editBtn.style.display = loggedIn ? "inline-block" : "none";
+}
+
+/* ---------------- Admin: edit panel ---------------- */
+els.editBtn.addEventListener("click", () => {
+  isEditing = !isEditing;
+  els.editPanel.style.display = isEditing ? "block" : "none";
+  els.editBtn.textContent = isEditing ? "Close editor" : "Edit";
+  if(isEditing) renderEditPanel();
+});
+
+function renderEditPanel(){
+  const {plan, members} = currentData;
+  els.editPanel.innerHTML = `
+    <div class="grid-2">
+      <div class="field">
+        <label>Plan name</label>
+        <input id="f_name" value="${escapeAttr(plan.name)}">
+      </div>
+      <div class="field">
+        <label>Currency symbol</label>
+        <input id="f_currency" value="${escapeAttr(plan.currency)}">
+      </div>
+      <div class="field">
+        <label>Total cost / cycle</label>
+        <input id="f_total" type="number" step="0.01" value="${plan.totalCost || 0}">
+      </div>
+      <div class="field">
+        <label>Next billing date</label>
+        <input id="f_date" type="date" value="${plan.billingDate || ""}">
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top:6px;">
+      <h2>Members</h2>
+      <button id="addMemberBtn" class="small ghost">+ Add member</button>
+    </div>
+    <div id="memberEditList"></div>
+
+    <div style="display:flex; gap:10px; margin-top:18px;">
+      <button id="splitEvenlyBtn" class="ghost small">Split evenly</button>
+      <button id="saveBtn" class="primary" style="margin-left:auto;">Save changes</button>
+    </div>
+    <div id="statusMsg"></div>
+  `;
+  renderMemberEditList();
+
+  document.getElementById("addMemberBtn").addEventListener("click", () => {
+    currentData.members.push({id: crypto.randomUUID(), name:"New member", share:0, paid:false});
+    renderMemberEditList();
+  });
+  document.getElementById("splitEvenlyBtn").addEventListener("click", () => {
+    const n = currentData.members.length;
+    if(n === 0) return;
+    const each = Math.round((Number(document.getElementById("f_total").value || 0) / n) * 100) / 100;
+    currentData.members.forEach(m => m.share = each);
+    renderMemberEditList();
+  });
+  document.getElementById("saveBtn").addEventListener("click", saveChanges);
+}
+
+function escapeAttr(str){ return (str || "").replace(/"/g, "&quot;"); }
+
+function renderMemberEditList(){
+  const list = document.getElementById("memberEditList");
+  list.innerHTML = "";
+  currentData.members.forEach((m, idx) => {
+    const row = document.createElement("div");
+    row.className = "member-edit-row";
+    row.innerHTML = `
+      <input data-field="name" data-idx="${idx}" value="${escapeAttr(m.name)}" placeholder="Name">
+      <input data-field="share" data-idx="${idx}" type="number" step="0.01" value="${m.share || 0}" placeholder="Amount">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);">
+        <input type="checkbox" data-field="paid" data-idx="${idx}" ${m.paid ? "checked" : ""} style="width:auto;">
+        Paid
+      </label>
+      <button class="small ghost" data-remove="${idx}">Remove</button>
+    `;
+    list.appendChild(row);
+  });
+
+  list.querySelectorAll("input[data-field]").forEach(input => {
+    input.addEventListener("input", (e) => {
+      const idx = Number(e.target.dataset.idx);
+      const field = e.target.dataset.field;
+      if(field === "paid"){
+        currentData.members[idx].paid = e.target.checked;
+      } else if(field === "share"){
+        currentData.members[idx].share = Number(e.target.value);
+      } else {
+        currentData.members[idx].name = e.target.value;
+      }
+    });
+  });
+  list.querySelectorAll("[data-remove]").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      const idx = Number(e.target.dataset.remove);
+      currentData.members.splice(idx, 1);
+      renderMemberEditList();
+    });
+  });
+}
+
+async function saveChanges(){
+  const statusEl = document.getElementById("statusMsg");
+  const token = getToken();
+  if(!token){
+    statusEl.innerHTML = `<div class="status-msg err">Not logged in.</div>`;
+    return;
+  }
+  currentData.plan.name = document.getElementById("f_name").value;
+  currentData.plan.currency = document.getElementById("f_currency").value;
+  currentData.plan.totalCost = Number(document.getElementById("f_total").value);
+  currentData.plan.billingDate = document.getElementById("f_date").value;
+  currentData.lastUpdated = new Date().toISOString();
+
+  statusEl.innerHTML = `<div class="status-msg info">Saving…</div>`;
+
+  const body = {
+    message: `Update plan ledger (${new Date().toISOString()})`,
+    content: b64EncodeUnicode(JSON.stringify(currentData, null, 2)),
+    branch: CONFIG.branch
+  };
+  if(currentSha) body.sha = currentSha;
+
+  try{
+    const res = await fetch(API_BASE, {
+      method:"PUT",
+      headers:{
+        "Accept":"application/vnd.github+json",
+        "Authorization":`Bearer ${token}`,
+        "Content-Type":"application/json"
+      },
+      body: JSON.stringify(body)
+    });
+    if(!res.ok){
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.message || `HTTP ${res.status}`);
+    }
+    const resJson = await res.json();
+    currentSha = resJson.content.sha;
+    statusEl.innerHTML = `<div class="status-msg ok">Saved. It may take a minute to show for other viewers.</div>`;
+    render();
+  }catch(err){
+    statusEl.innerHTML = `<div class="status-msg err">Save failed — ${err.message}</div>`;
+  }
+}
+
+/* ---------------- Init ---------------- */
+updateAdminUI();
+loadData();
+</script>
+</body>
+</html>

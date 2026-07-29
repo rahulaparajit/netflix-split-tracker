@@ -1,0 +1,15 @@
+{
+  "plan": {
+    "name": "Netflix Premium",
+    "totalCost": 649,
+    "currency": "₹",
+    "billingDate": "2026-08-05",
+    "notes": ""
+  },
+  "members": [
+    { "id": "m1", "name": "You", "share": 217, "paid": true },
+    { "id": "m2", "name": "Member 2", "share": 216, "paid": false },
+    { "id": "m3", "name": "Member 3", "share": 216, "paid": false }
+  ],
+  "lastUpdated": "2026-07-29T00:00:00.000Z"
+}
