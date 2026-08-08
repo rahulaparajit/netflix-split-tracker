@@ -373,23 +373,43 @@
     background:var(--surface);
     padding:20px;
     margin-top:10px;
+    box-sizing:border-box;
+    width:100%;
+    max-width:100%;
+    overflow:hidden;
+  }
+  .table-responsive{
+    display:block;
+    width:100%;
+    max-width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+    box-sizing:border-box;
   }
   .field{margin-bottom:14px;}
   .field label{
     display:block;font-size:12px;color:var(--ink-dim);margin-bottom:5px;
     font-family:'JetBrains Mono',monospace;letter-spacing:.03em;
   }
-  .field input, .field select{
+  .field input, .field select, .field textarea{
     width:100%;
+    max-width:100%;
+    box-sizing:border-box;
     background:var(--surface-2);
     border:1px solid var(--line);
     color:var(--ink);
     border-radius:6px;
     padding:9px 10px;
-    font-size:14px;
+    font-size:13.5px;
     font-family:'IBM Plex Sans',sans-serif;
   }
-  .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .grid-2{
+    display:grid;
+    grid-template-columns:repeat(2, minmax(0, 1fr));
+    gap:12px;
+    width:100%;
+    box-sizing:border-box;
+  }
   .member-edit-row{
     display:grid;
     grid-template-columns:1fr 90px 75px 125px auto;
@@ -422,15 +442,26 @@
     font-size:13px;
   }
   .registry-table th, .registry-table td{
-    padding:10px 12px;
+    padding:8px 8px;
     border-bottom:1px solid var(--line);
     text-align:left;
+    vertical-align:middle;
   }
   .registry-table th{
     font-family:'JetBrains Mono',monospace;
     font-size:11px;
     color:var(--ink-dim);
     text-transform:uppercase;
+    white-space:nowrap;
+  }
+  .registry-table td code{
+    white-space:nowrap;
+    font-size:10.5px;
+    padding:2px 5px;
+    border-radius:4px;
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;
   }
 
   /* ---- Empty state styling ---- */
@@ -575,9 +606,10 @@
     border:1px solid var(--line);
     border-radius:var(--radius);
     width:100%;
-    max-width:440px;
+    max-width:460px;
     box-shadow:0 16px 40px rgba(0,0,0,.5);
     overflow:hidden;
+    box-sizing:border-box;
     animation:scaleUp .2s ease;
   }
   @keyframes scaleUp{
@@ -591,6 +623,7 @@
     padding:16px 20px;
     border-bottom:1px solid var(--line);
     background:var(--surface-2);
+    box-sizing:border-box;
   }
   .modal-header h3{
     font-family:'Space Grotesk',sans-serif;
@@ -601,6 +634,8 @@
   }
   .modal-body{
     padding:20px;
+    box-sizing:border-box;
+    width:100%;
   }
   .modal-desc{
     font-size:13px;
@@ -659,6 +694,7 @@
     <div class="admin-toggle">
       <button id="themeToggleBtn" class="small ghost" title="Toggle Light/Dark Theme">☀️ Light</button>
       <button id="registryBtn" class="small ghost" style="display:none;" title="Manage Master Registered Members">Member Registry</button>
+      <button id="cycleManagerBtn" class="small ghost" style="display:none;" title="Manage all billing cycles in a grid">Cycle Manager</button>
       <button id="addPastCycleBtn" class="small ghost" style="display:none;" title="Create a new billing cycle (Active, Future, or Past)">+ Create Cycle</button>
       <button id="loginBtn" class="small">Admin login</button>
       <button id="logoutBtn" class="small ghost" style="display:none;">Log out</button>
@@ -682,6 +718,7 @@
   </div>
 
   <div class="panel" id="registryPanel" style="display:none;"></div>
+  <div class="panel" id="cycleManagerPanel" style="display:none;"></div>
 
   <div class="section-head">
     <h2 id="ledgerTitle">Members Ledger</h2>
@@ -793,9 +830,11 @@ const els = {
   logoutBtn: document.getElementById("logoutBtn"),
   addPastCycleBtn: document.getElementById("addPastCycleBtn"),
   registryBtn: document.getElementById("registryBtn"),
+  cycleManagerBtn: document.getElementById("cycleManagerBtn"),
   editBtn: document.getElementById("editBtn"),
   editPanel: document.getElementById("editPanel"),
   registryPanel: document.getElementById("registryPanel"),
+  cycleManagerPanel: document.getElementById("cycleManagerPanel"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
   installBanner: document.getElementById("installBanner"),
   installAppBtn: document.getElementById("installAppBtn"),
@@ -1155,6 +1194,7 @@ function render(){
 
   if(isEditing) renderEditPanel();
   if(isManagingRegistry) renderRegistryPanel();
+  if(isManagingCycles) renderCycleManagerPanel();
 }
 
 function renderSplitBar(plan, members){
@@ -1616,9 +1656,11 @@ els.logoutBtn.addEventListener("click", () => {
   clearToken();
   isEditing = false;
   isManagingRegistry = false;
+  isManagingCycles = false;
   updateAdminUI();
   els.editPanel.style.display = "none";
   els.registryPanel.style.display = "none";
+  if(els.cycleManagerPanel) els.cycleManagerPanel.style.display = "none";
   showToast("Logged out", "info");
   loadData();
 });
@@ -1630,6 +1672,208 @@ function updateAdminUI(){
   els.editBtn.style.display = loggedIn ? "inline-block" : "none";
   els.addPastCycleBtn.style.display = loggedIn ? "inline-block" : "none";
   els.registryBtn.style.display = loggedIn ? "inline-block" : "none";
+  if(els.cycleManagerBtn) els.cycleManagerBtn.style.display = loggedIn ? "inline-block" : "none";
+}
+
+/* ---------------- Admin: Cycle Manager Grid Panel ---------------- */
+let isManagingCycles = false;
+
+if(els.cycleManagerBtn){
+  els.cycleManagerBtn.addEventListener("click", () => {
+    isManagingCycles = !isManagingCycles;
+    els.cycleManagerPanel.style.display = isManagingCycles ? "block" : "none";
+    els.cycleManagerBtn.textContent = isManagingCycles ? "Close Manager" : "Cycle Manager";
+    if(isManagingCycles) renderCycleManagerPanel();
+  });
+}
+
+function renderCycleManagerPanel(){
+  if(!currentData || !els.cycleManagerPanel) return;
+  const history = currentData.history || [];
+  const plan = currentData.plan || {};
+  
+  const allCycles = [
+    {
+      id: "current",
+      isCurrent: true,
+      label: plan.name || "Netflix Premium",
+      billingDate: plan.billingDate || "2026-08-26",
+      status: plan.status || "active",
+      currency: plan.currency || "₹",
+      totalCost: plan.totalCost || 649,
+      memberCount: (currentData.members || []).length
+    },
+    ...history.map(h => ({
+      id: h.id,
+      isCurrent: false,
+      label: h.cycleLabel || h.name || "Billing Cycle",
+      billingDate: h.billingDate,
+      status: h.status || "archived",
+      currency: h.currency || "₹",
+      totalCost: h.totalCost || 0,
+      memberCount: (h.members || []).length
+    }))
+  ];
+
+  els.cycleManagerPanel.innerHTML = `
+    <div class="section-head" style="margin-top:0;">
+      <h2>Billing Cycles Manager</h2>
+      <button id="managerCreateBtn" class="small primary">+ Create New Cycle</button>
+    </div>
+    <div style="font-size:12px;color:var(--ink-dim);margin-bottom:14px;line-height:1.45;">
+      View all billing cycles below. Click <strong>Modify</strong> to edit cycle title, date, cost, or status tag.
+    </div>
+
+    <div class="table-responsive">
+      <table class="registry-table">
+        <thead>
+          <tr>
+            <th>Cycle Label / Title</th>
+            <th style="text-align:right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${allCycles.map(c => {
+            const statusClass = c.status || 'archived';
+            const statusLabel = c.status === 'active' ? 'ACTIVE' : c.status === 'future' ? 'FUTURE' : 'ARCHIVED';
+            return `
+              <tr>
+                <td>
+                  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <strong style="font-size:13.5px;color:var(--ink);">${escapeHtml(c.label)}</strong>
+                    <span class="cycle-status-badge ${statusClass}" style="font-size:9.5px;padding:2px 7px;">${statusLabel}</span>
+                  </div>
+                  <div style="font-size:11px;color:var(--ink-dim);margin-top:3px;">
+                    Billed 26th · ${fmtMoney(c.totalCost, c.currency)} (${c.memberCount} members)
+                  </div>
+                </td>
+                <td style="text-align:right;white-space:nowrap;">
+                  <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">
+                    <button class="small primary" data-modify-mgr-id="${c.id}">Modify</button>
+                    ${!c.isCurrent ? `<button class="small danger" data-delete-mgr-id="${c.id}">Delete</button>` : ''}
+                  </div>
+                </td>
+              </tr>
+            `;
+          }).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const mgrCreateBtn = document.getElementById("managerCreateBtn");
+  if(mgrCreateBtn){
+    mgrCreateBtn.addEventListener("click", () => {
+      els.addPastCycleBtn.click();
+    });
+  }
+
+  els.cycleManagerPanel.querySelectorAll("[data-modify-mgr-id]").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      const cId = e.currentTarget.dataset.modifyMgrId;
+      const target = allCycles.find(c => c.id === cId);
+      if(!target) return;
+
+      const res = await openCustomModal({
+        title: `Modify Cycle — ${target.label}`,
+        bodyHtml: `
+          <div class="field">
+            <label for="mgrEditTitle">Cycle Title / Label</label>
+            <input type="text" id="mgrEditTitle" name="label" value="${escapeAttr(target.label)}">
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="mgrEditDate">Billing Date</label>
+              <input type="date" id="mgrEditDate" name="billingDate" value="${target.billingDate || ''}">
+            </div>
+            <div class="field">
+              <label for="mgrEditTotal">Total Cost</label>
+              <input type="number" step="0.01" id="mgrEditTotal" name="totalCost" value="${target.totalCost || 0}">
+            </div>
+          </div>
+          <div class="grid-2">
+            <div class="field">
+              <label for="mgrEditCurrency">Currency Symbol</label>
+              <input type="text" id="mgrEditCurrency" name="currency" value="${escapeAttr(target.currency || '₹')}">
+            </div>
+            <div class="field">
+              <label for="mgrEditStatus">Status Tag</label>
+              <select id="mgrEditStatus" name="status">
+                <option value="active" ${target.status === 'active' ? 'selected' : ''}>Active Cycle (Green)</option>
+                <option value="future" ${target.status === 'future' ? 'selected' : ''}>Future Cycle (Blue)</option>
+                <option value="archived" ${target.status === 'archived' ? 'selected' : ''}>Archived Cycle (Gold)</option>
+              </select>
+            </div>
+          </div>
+        `,
+        confirmText: "Save Changes",
+        cancelText: "Cancel"
+      });
+
+      if(!res) return;
+
+      const newLabel = res.label && res.label.trim() ? res.label.trim() : target.label;
+      const newDate = res.billingDate;
+      const newTotal = Number(res.totalCost || target.totalCost);
+      const newCurr = res.currency ? res.currency.trim() : target.currency;
+      const newStatus = res.status || target.status;
+
+      if(cId === "current"){
+        currentData.plan.name = newLabel;
+        if(newDate){
+          const parts = newDate.split('-');
+          currentData.plan.billingDate = `${parts[0]}-${parts[1]}-26`;
+        }
+        currentData.plan.totalCost = newTotal;
+        currentData.plan.currency = newCurr;
+        currentData.plan.status = newStatus;
+      } else {
+        const hist = (currentData.history || []).find(h => h.id === cId);
+        if(hist){
+          hist.cycleLabel = newLabel;
+          if(newDate){
+            const parts = newDate.split('-');
+            hist.billingDate = `${parts[0]}-${parts[1]}-26`;
+          }
+          hist.totalCost = newTotal;
+          hist.currency = newCurr;
+          hist.status = newStatus;
+        }
+      }
+
+      if(newStatus === "active"){
+        ensureSingleActiveCycle(cId);
+      }
+
+      showToast("Cycle updated successfully", "ok");
+      await saveChanges(false);
+      populateCycleSelector();
+      renderCycleManagerPanel();
+      render();
+    });
+  });
+
+  els.cycleManagerPanel.querySelectorAll("[data-delete-mgr-id]").forEach(btn => {
+    btn.addEventListener("click", async (e) => {
+      const cId = e.currentTarget.dataset.deleteMgrId;
+      const hist = (currentData.history || []).find(h => h.id === cId);
+      const titleText = hist ? (hist.cycleLabel || hist.name || cId) : cId;
+
+      const ok = await showCustomConfirm("Delete Cycle", `Permanently delete cycle "${titleText}"? This action cannot be undone.`, "Delete Cycle", true);
+      if(!ok) return;
+
+      currentData.history = (currentData.history || []).filter(h => h.id !== cId);
+      if(selectedCycleId === cId){
+        selectedCycleId = "current";
+      }
+
+      showToast("Cycle deleted", "info");
+      await saveChanges(false);
+      populateCycleSelector();
+      renderCycleManagerPanel();
+      render();
+    });
+  });
 }
 
 /* ---------------- Admin: Member Registry ---------------- */
