@@ -1,9 +1,9 @@
 {
   "plan": {
-    "name": "Netflix Premium",
+    "name": "27th May – 26th Jun 2026",
     "totalCost": 649,
     "currency": "₹",
-    "billingDate": "2026-07-26",
+    "billingDate": "2026-06-26",
     "notes": ""
   },
   "members": [
@@ -11,14 +11,15 @@
       "id": "m1",
       "name": "Rahul",
       "share": 129.8,
-      "paid": true
+      "paid": false,
+      "paidAt": null
     },
     {
       "id": "m2",
       "name": "Ameya.H",
       "share": 129.8,
-      "paid": true,
-      "paidAt": "2026-08-01T10:00:00.000Z"
+      "paid": false,
+      "paidAt": null
     },
     {
       "id": "m3",
@@ -43,51 +44,6 @@
     }
   ],
   "history": [
-    {
-      "id": "h-1786193276134",
-      "cycleLabel": "27th May – 26th Jun 2026",
-      "billingDate": "2026-06-26",
-      "totalCost": 649,
-      "currency": "₹",
-      "archivedAt": "2026-08-08T12:47:56.134Z",
-      "members": [
-        {
-          "id": "m1",
-          "name": "Rahul",
-          "share": 129.8,
-          "paid": false,
-          "paidAt": null
-        },
-        {
-          "id": "m2",
-          "name": "Ameya.H",
-          "share": 129.8,
-          "paid": false,
-          "paidAt": null
-        },
-        {
-          "id": "m3",
-          "name": "Abhijeet",
-          "share": 129.8,
-          "paid": false,
-          "paidAt": null
-        },
-        {
-          "id": "e302d260-cb31-4858-8d93-6bbd30b79acb",
-          "name": "Nikhil",
-          "share": 129.8,
-          "paid": false,
-          "paidAt": null
-        },
-        {
-          "id": "76f0c8d0-9e40-4732-8740-fbe1284b71e7",
-          "name": "Ameya.Z",
-          "share": 129.8,
-          "paid": false,
-          "paidAt": null
-        }
-      ]
-    },
     {
       "id": "h-2026-07",
       "cycleLabel": "July 2026",
@@ -120,5 +76,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T12:47:56.136Z"
+  "lastUpdated": "2026-08-08T12:48:35.823Z"
 }
