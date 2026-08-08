@@ -77,6 +77,51 @@
   ],
   "history": [
     {
+      "id": "h-1786195620922",
+      "cycleLabel": "27th Jan – 26th Feb 2026",
+      "billingDate": "2026-01-26",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-08T13:27:00.922Z",
+      "members": [
+        {
+          "id": "m-mskei0ih",
+          "name": "Rahul",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskeizj5",
+          "name": "Abhijeet",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejfg8",
+          "name": "Ameya.H",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejp19",
+          "name": "Nikhil",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskek2fh",
+          "name": "Ameya.Z",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        }
+      ]
+    },
+    {
       "id": "h-1786195532120",
       "cycleLabel": "27th Feb – 26th March 2026",
       "billingDate": "2026-02-26",
@@ -122,5 +167,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T13:25:32.121Z"
+  "lastUpdated": "2026-08-08T13:27:00.922Z"
 }
