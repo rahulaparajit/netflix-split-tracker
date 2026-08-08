@@ -88,8 +88,8 @@
           "id": "m-mskei0ih",
           "name": "Rahul",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-08T13:29:44.056Z"
         },
         {
           "id": "m-mskeizj5",
@@ -212,5 +212,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T13:29:39.679Z"
+  "lastUpdated": "2026-08-08T13:29:44.060Z"
 }
