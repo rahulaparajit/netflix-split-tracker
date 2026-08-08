@@ -4,7 +4,8 @@
     "totalCost": 649,
     "currency": "₹",
     "billingDate": "2026-08-26",
-    "notes": "Prepaid plan · Billed on 26th of every month"
+    "notes": "Prepaid plan · Billed on 26th of every month",
+    "status": "archived"
   },
   "registeredMembers": [
     {
@@ -76,6 +77,52 @@
     }
   ],
   "history": [
+    {
+      "id": "h-1786209176738",
+      "cycleLabel": "27th Sept– 26th Oct2026",
+      "billingDate": "2026-08-26",
+      "status": "active",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-08T17:12:56.738Z",
+      "members": [
+        {
+          "id": "m-mskei0ih",
+          "name": "Rahul",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskeizj5",
+          "name": "Abhijeet",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejfg8",
+          "name": "Ameya.H",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejp19",
+          "name": "Nikhil",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskek2fh",
+          "name": "Ameya.Z",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        }
+      ]
+    },
     {
       "id": "h-1786198832595",
       "cycleLabel": "27th Aug – 26th Sept 2026",
@@ -393,5 +440,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T17:11:16.282Z"
+  "lastUpdated": "2026-08-08T17:12:56.738Z"
 }
