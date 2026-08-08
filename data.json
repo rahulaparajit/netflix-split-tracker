@@ -8,36 +8,23 @@
   },
   "members": [
     {
-      "id": "m1",
-      "name": "You",
-      "share": 217,
-      "paid": true,
-      "paidAt": "2026-07-02T14:20:00.000Z"
-    },
-    {
       "id": "m2",
       "name": "Member 2",
-      "share": 216,
+      "share": 324.5,
       "paid": true,
       "paidAt": "2026-07-04T18:10:00.000Z"
     },
     {
       "id": "m3",
       "name": "Member 3",
-      "share": 216,
+      "share": 324.5,
       "paid": true,
       "paidAt": "2026-07-05T09:00:00.000Z"
     }
   ],
   "history": [],
-  "lastUpdated": "2026-08-08T13:04:21.313Z",
+  "lastUpdated": "2026-08-08T13:09:47.698Z",
   "registeredMembers": [
-    {
-      "id": "m1",
-      "name": "You",
-      "active": true,
-      "joinedAt": "2026-08-08T12:57:49.679Z"
-    },
     {
       "id": "m2",
       "name": "Member 2",
