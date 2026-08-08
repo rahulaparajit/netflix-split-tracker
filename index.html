@@ -20,6 +20,20 @@
     --gold-soft:rgba(216,166,87,.14);
     --line:#322d27;
     --radius:10px;
+    --hatch-bg:#171412;
+  }
+  [data-theme="light"]{
+    --bg:#f5f3ef;
+    --surface:#ffffff;
+    --surface-2:#eae6df;
+    --ink:#1c1a17;
+    --ink-dim:#6e6659;
+    --accent:#d32f2f;
+    --accent-soft:rgba(211,47,47,.1);
+    --gold:#b58117;
+    --gold-soft:rgba(181,129,23,.14);
+    --line:#d6d0c4;
+    --hatch-bg:#dbd5c9;
   }
   *{box-sizing:border-box;}
   body{
@@ -140,7 +154,7 @@
   }
   .split-seg:last-child{border-right:none;}
   .split-seg.unpaid{
-    background-image:repeating-linear-gradient(135deg, var(--surface-2), var(--surface-2) 6px, #171412 6px, #171412 12px);
+    background-image:repeating-linear-gradient(135deg, var(--surface-2), var(--surface-2) 6px, var(--hatch-bg) 6px, var(--hatch-bg) 12px);
   }
   .split-seg.paid{ background:var(--gold-soft); }
   .split-legend{
@@ -446,6 +460,7 @@
     </div>
 
     <div class="admin-toggle">
+      <button id="themeToggleBtn" class="small ghost" title="Toggle Light/Dark Theme">☀️ Light</button>
       <button id="registryBtn" class="small ghost" style="display:none;" title="Manage Master Registered Members">Member Registry</button>
       <button id="addPastCycleBtn" class="small ghost" style="display:none;" title="Create a custom past/historical cycle">+ Past Cycle</button>
       <button id="startCycleBtn" class="small ghost" style="display:none;" title="Archive current cycle & reset for next month">Start Next Cycle</button>
@@ -539,10 +554,31 @@ const els = {
   editBtn: document.getElementById("editBtn"),
   editPanel: document.getElementById("editPanel"),
   registryPanel: document.getElementById("registryPanel"),
+  themeToggleBtn: document.getElementById("themeToggleBtn"),
   toast: document.getElementById("toast")
 };
 
 const SEG_COLORS = ["#e1362b","#d8a657","#7e9cd8","#7ec98f","#c98fd8","#d8c47e","#8fd8c9","#d87e9c"];
+const THEME_KEY = "planLedger_theme";
+
+function getTheme(){ return localStorage.getItem(THEME_KEY) || "dark"; }
+function setTheme(t){
+  localStorage.setItem(THEME_KEY, t);
+  document.documentElement.setAttribute("data-theme", t);
+  if(els.themeToggleBtn){
+    els.themeToggleBtn.textContent = t === "light" ? "🌙 Dark" : "☀️ Light";
+  }
+}
+
+// Initial theme setup
+setTheme(getTheme());
+
+if(els.themeToggleBtn){
+  els.themeToggleBtn.addEventListener("click", () => {
+    const current = getTheme();
+    setTheme(current === "light" ? "dark" : "light");
+  });
+}
 
 function getToken(){ return localStorage.getItem(TOKEN_KEY); }
 function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
