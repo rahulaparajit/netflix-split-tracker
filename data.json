@@ -7,9 +7,24 @@
     "notes": ""
   },
   "members": [
-    { "id": "m1", "name": "You", "share": 217, "paid": true },
-    { "id": "m2", "name": "Member 2", "share": 216, "paid": false },
-    { "id": "m3", "name": "Member 3", "share": 216, "paid": false }
+    { "id": "m1", "name": "You", "share": 217, "paid": true, "paidAt": "2026-08-01T10:00:00.000Z" },
+    { "id": "m2", "name": "Member 2", "share": 216, "paid": false, "paidAt": null },
+    { "id": "m3", "name": "Member 3", "share": 216, "paid": false, "paidAt": null }
   ],
-  "lastUpdated": "2026-07-29T00:00:00.000Z"
+  "history": [
+    {
+      "id": "h-2026-07",
+      "cycleLabel": "July 2026",
+      "billingDate": "2026-07-05",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-01T00:00:00.000Z",
+      "members": [
+        { "id": "m1", "name": "You", "share": 217, "paid": true, "paidAt": "2026-07-02T14:20:00.000Z" },
+        { "id": "m2", "name": "Member 2", "share": 216, "paid": true, "paidAt": "2026-07-04T18:10:00.000Z" },
+        { "id": "m3", "name": "Member 3", "share": 216, "paid": true, "paidAt": "2026-07-05T09:00:00.000Z" }
+      ]
+    }
+  ],
+  "lastUpdated": "2026-08-08T17:30:00.000Z"
 }

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plan Ledger</title>
+<title>Plan Ledger — Shared Netflix Subscription</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -29,7 +29,41 @@
     font-family:'IBM Plex Sans',sans-serif;
     -webkit-font-smoothing:antialiased;
   }
-  .wrap{max-width:760px;margin:0 auto;padding:32px 20px 80px;}
+  .wrap{max-width:780px;margin:0 auto;padding:32px 20px 80px;}
+
+  /* ---- Header / Top bar ---- */
+  .top-bar{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:14px;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .cycle-picker{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .cycle-picker label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    color:var(--ink-dim);
+  }
+  .cycle-select{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    font-family:'JetBrains Mono',monospace;
+    font-size:12.5px;
+    padding:6px 12px;
+    border-radius:6px;
+    outline:none;
+    cursor:pointer;
+  }
+  .cycle-select:focus{
+    border-color:var(--gold);
+  }
 
   /* ---- Header / stub ---- */
   .stub{
@@ -53,6 +87,9 @@
     letter-spacing:.14em;
     text-transform:uppercase;
     color:var(--ink-dim);
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
   }
   .stub-title{
     font-family:'Space Grotesk',sans-serif;
@@ -111,6 +148,17 @@
     display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;
   }
 
+  .archive-badge{
+    display:inline-block;
+    background:var(--gold-soft);
+    color:var(--gold);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    padding:3px 8px;
+    border-radius:4px;
+    letter-spacing:.05em;
+  }
+
   /* ---- Section headers ---- */
   .section-head{
     display:flex;
@@ -143,7 +191,17 @@
     border-bottom:1px solid var(--line);
   }
   .row:last-child{border-bottom:none;}
+  .row .name-col{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+  }
   .row .name{font-weight:500;}
+  .row .paid-date{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+  }
   .row .amount{
     font-family:'JetBrains Mono',monospace;
     font-size:14px;
@@ -156,12 +214,61 @@
     font-size:10.5px;
     letter-spacing:.06em;
     text-transform:uppercase;
-    padding:4px 8px;
+    padding:4px 10px;
     border-radius:100px;
     white-space:nowrap;
+    border:none;
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
   }
   .tag.paid{background:var(--gold-soft);color:var(--gold);}
   .tag.unpaid{background:var(--accent-soft);color:var(--accent);}
+  
+  .tag-btn{
+    cursor:pointer;
+    transition:transform .1s ease, filter .15s ease;
+  }
+  .tag-btn:hover{
+    filter:brightness(1.2);
+  }
+  .tag-btn:active{
+    transform:scale(0.96);
+  }
+
+  /* ---- Matrix table ---- */
+  .matrix-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    overflow-x:auto;
+  }
+  .matrix-table{
+    width:100%;
+    border-collapse:collapse;
+    text-align:left;
+    font-size:13px;
+  }
+  .matrix-table th, .matrix-table td{
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    white-space:nowrap;
+  }
+  .matrix-table th{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+    background:var(--surface-2);
+  }
+  .matrix-table tr:last-child td{border-bottom:none;}
+  .matrix-status{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+  }
+  .matrix-status.ok{color:var(--gold);}
+  .matrix-status.miss{color:var(--accent);}
 
   /* ---- Buttons ---- */
   button{
@@ -224,6 +331,26 @@
     background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
     border-radius:6px;padding:8px 9px;font-size:13px;width:100%;
   }
+  .status-toast{
+    position:fixed;
+    bottom:20px;
+    right:20px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;
+    padding:10px 16px;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+    z-index:100;
+    display:none;
+    align-items:center;
+    gap:8px;
+  }
+  .status-toast.ok{border-color:var(--gold);color:var(--gold);}
+  .status-toast.err{border-color:var(--accent);color:var(--accent);}
+  .status-toast.info{border-color:var(--ink-dim);color:var(--ink);}
+
   .status-msg{
     font-family:'JetBrains Mono',monospace;
     font-size:12px;
@@ -251,8 +378,26 @@
 <body>
 <div class="wrap">
 
+  <div class="top-bar">
+    <div class="cycle-picker">
+      <label for="cycleSelect">Billing Period:</label>
+      <select id="cycleSelect" class="cycle-select">
+        <option value="current">Current Cycle</option>
+      </select>
+    </div>
+
+    <div class="admin-toggle">
+      <button id="startCycleBtn" class="small ghost" style="display:none;" title="Archive current cycle & reset for next month">Start New Cycle</button>
+      <button id="loginBtn" class="small">Admin login</button>
+      <button id="logoutBtn" class="small ghost" style="display:none;">Log out</button>
+    </div>
+  </div>
+
   <div class="stub">
-    <div class="stub-eyebrow">Shared subscription · updated <span id="lastUpdated">—</span></div>
+    <div class="stub-eyebrow">
+      <span>Shared subscription · updated <span id="lastUpdated">—</span></span>
+      <span id="archiveBadge" class="archive-badge" style="display:none;">ARCHIVED CYCLE</span>
+    </div>
     <div class="stub-title" id="planName">Loading…</div>
     <div class="stub-meta" id="planMeta"></div>
     <div class="stub-total">
@@ -263,14 +408,9 @@
     <div class="split-legend" id="splitLegend"></div>
   </div>
 
-  <div class="admin-toggle">
-    <button id="loginBtn" class="small">Admin login</button>
-    <button id="logoutBtn" class="small ghost" style="display:none;">Log out</button>
-  </div>
-
   <div class="section-head">
-    <h2>Members</h2>
-    <button id="editBtn" class="small" style="display:none;">Edit</button>
+    <h2 id="ledgerTitle">Members Ledger</h2>
+    <button id="editBtn" class="small" style="display:none;">Edit Plan</button>
   </div>
   <div class="ledger" id="memberLedger">
     <div class="empty">Loading member data…</div>
@@ -278,8 +418,17 @@
 
   <div class="panel" id="editPanel" style="display:none;"></div>
 
-  <div class="footer-note">Data lives in this repo's <code>data.json</code>, edited via the GitHub API.</div>
+  <div class="section-head" style="margin-top:36px;">
+    <h2>Contribution Matrix</h2>
+  </div>
+  <div class="matrix-card" id="matrixCard">
+    <div class="empty">Loading history matrix…</div>
+  </div>
+
+  <div class="footer-note">Data lives in repo's <code>data.json</code>, managed via GitHub Contents API.</div>
 </div>
+
+<div id="toast" class="status-toast"></div>
 
 <script>
 /* ======================= CONFIG ======================= *
@@ -300,10 +449,13 @@ const TOKEN_KEY = "planLedger_token";
 
 let currentData = null;
 let currentSha = null;
+let selectedCycleId = "current";
 let isEditing = false;
 
 const els = {
+  cycleSelect: document.getElementById("cycleSelect"),
   lastUpdated: document.getElementById("lastUpdated"),
+  archiveBadge: document.getElementById("archiveBadge"),
   planName: document.getElementById("planName"),
   planMeta: document.getElementById("planMeta"),
   planTotal: document.getElementById("planTotal"),
@@ -311,10 +463,13 @@ const els = {
   splitBar: document.getElementById("splitBar"),
   splitLegend: document.getElementById("splitLegend"),
   memberLedger: document.getElementById("memberLedger"),
+  matrixCard: document.getElementById("matrixCard"),
   loginBtn: document.getElementById("loginBtn"),
   logoutBtn: document.getElementById("logoutBtn"),
+  startCycleBtn: document.getElementById("startCycleBtn"),
   editBtn: document.getElementById("editBtn"),
   editPanel: document.getElementById("editPanel"),
+  toast: document.getElementById("toast")
 };
 
 const SEG_COLORS = ["#e1362b","#d8a657","#7e9cd8","#7ec98f","#c98fd8","#d8c47e","#8fd8c9","#d87e9c"];
@@ -337,6 +492,25 @@ function fmtMoney(n, currency){
   return `${currency || ""}${num.toLocaleString(undefined,{maximumFractionDigits:2})}`;
 }
 
+function fmtDate(isoStr){
+  if(!isoStr) return "";
+  try{
+    const d = new Date(isoStr);
+    return d.toLocaleDateString(undefined, {month:'short', day:'numeric'});
+  }catch(e){ return ""; }
+}
+
+function showToast(msg, type="info", duration=3000){
+  els.toast.className = `status-toast ${type}`;
+  els.toast.textContent = msg;
+  els.toast.style.display = "flex";
+  if(duration > 0){
+    setTimeout(() => {
+      els.toast.style.display = "none";
+    }, duration);
+  }
+}
+
 async function loadData(){
   els.memberLedger.innerHTML = `<div class="empty">Loading member data…</div>`;
   try{
@@ -354,6 +528,10 @@ async function loadData(){
     const json = await res.json();
     currentSha = json.sha;
     currentData = JSON.parse(b64DecodeUnicode(json.content.replace(/\n/g,"")));
+    
+    if(!currentData.history) currentData.history = [];
+    
+    populateCycleSelector();
     render();
   }catch(err){
     els.memberLedger.innerHTML = `<div class="empty">Couldn't load data.json — ${err.message}</div>`;
@@ -362,27 +540,88 @@ async function loadData(){
 
 function renderEmptyState(){
   currentData = {
-    plan:{name:"New Plan", totalCost:0, currency:"$", billingDate:"", notes:""},
+    plan:{name:"Netflix Premium", totalCost:649, currency:"₹", billingDate:"", notes:""},
     members:[],
+    history:[],
     lastUpdated:null
   };
   currentSha = null;
+  populateCycleSelector();
   render();
-  els.memberLedger.innerHTML = `<div class="empty">No data.json found yet in the repo. Log in as admin and save once to create it.</div>`;
+  els.memberLedger.innerHTML = `<div class="empty">No data.json found. Log in as admin and save once to create it.</div>`;
+}
+
+function populateCycleSelector(){
+  els.cycleSelect.innerHTML = `<option value="current">Current Cycle</option>`;
+  if(currentData && currentData.history){
+    currentData.history.forEach(h => {
+      const opt = document.createElement("option");
+      opt.value = h.id;
+      opt.textContent = `${h.cycleLabel || h.billingDate || h.id} (Archived)`;
+      els.cycleSelect.appendChild(opt);
+    });
+  }
+  els.cycleSelect.value = selectedCycleId;
+}
+
+els.cycleSelect.addEventListener("change", (e) => {
+  selectedCycleId = e.target.value;
+  if(selectedCycleId !== "current" && isEditing){
+    isEditing = false;
+    els.editPanel.style.display = "none";
+    els.editBtn.textContent = "Edit Plan";
+  }
+  updateAdminUI();
+  render();
+});
+
+function getActiveCycleData(){
+  if(!currentData) return { plan:{}, members:[] };
+  if(selectedCycleId === "current"){
+    return {
+      plan: currentData.plan,
+      members: currentData.members,
+      isArchive: false
+    };
+  }
+  const hist = (currentData.history || []).find(h => h.id === selectedCycleId);
+  if(hist){
+    return {
+      plan: {
+        name: currentData.plan.name,
+        totalCost: hist.totalCost || currentData.plan.totalCost,
+        currency: hist.currency || currentData.plan.currency,
+        billingDate: hist.billingDate,
+        notes: ""
+      },
+      members: hist.members || [],
+      isArchive: true,
+      cycleLabel: hist.cycleLabel
+    };
+  }
+  return { plan: currentData.plan, members: currentData.members, isArchive: false };
 }
 
 function render(){
-  const {plan, members, lastUpdated} = currentData;
+  const cycleData = getActiveCycleData();
+  const {plan, members, isArchive, cycleLabel} = cycleData;
+
   els.planName.textContent = plan.name || "Untitled plan";
-  els.planMeta.textContent = plan.billingDate ? `Next billing · ${plan.billingDate}` : "";
+  els.planMeta.textContent = plan.billingDate ? `Billing Date · ${plan.billingDate}` : "";
   els.planTotal.textContent = fmtMoney(plan.totalCost, plan.currency);
   els.planCurrency.textContent = "total / cycle";
-  els.lastUpdated.textContent = lastUpdated ? new Date(lastUpdated).toLocaleDateString() : "never";
+  els.lastUpdated.textContent = currentData.lastUpdated ? new Date(currentData.lastUpdated).toLocaleDateString() : "never";
+
+  els.archiveBadge.style.display = isArchive ? "inline-block" : "none";
+  if(isArchive){
+    els.archiveBadge.textContent = `ARCHIVED · ${cycleLabel || ''}`;
+  }
 
   renderSplitBar(plan, members);
-  renderLedger(members, plan.currency);
+  renderLedger(members, plan.currency, isArchive);
+  renderMatrix();
 
-  if(isEditing) renderEditPanel();
+  if(isEditing && !isArchive) renderEditPanel();
 }
 
 function renderSplitBar(plan, members){
@@ -403,29 +642,112 @@ function renderSplitBar(plan, members){
     legendItem.innerHTML = `<span class="dot" style="background:${m.paid ? color : 'transparent'};border:1px solid ${color};"></span>${m.name} · ${fmtMoney(m.share, plan.currency)}`;
     els.splitLegend.appendChild(legendItem);
   });
-  if(members.length === 0){
-    els.splitBar.style.display = "none";
-  } else {
-    els.splitBar.style.display = "flex";
-  }
+  els.splitBar.style.display = members.length === 0 ? "none" : "flex";
 }
 
-function renderLedger(members, currency){
+function renderLedger(members, currency, isArchive){
   if(!members || members.length === 0){
-    els.memberLedger.innerHTML = `<div class="empty">No members added yet.</div>`;
+    els.memberLedger.innerHTML = `<div class="empty">No members in this cycle.</div>`;
     return;
   }
+  const loggedIn = !!getToken();
   els.memberLedger.innerHTML = "";
+  
   members.forEach(m => {
     const row = document.createElement("div");
     row.className = "row";
+    
+    const paidAtText = m.paid && m.paidAt ? `Paid ${fmtDate(m.paidAt)}` : '';
+    
+    let tagHtml = `<span class="tag ${m.paid ? "paid" : "unpaid"}">${m.paid ? "Paid ✓" : "Unpaid"}</span>`;
+    
+    if(loggedIn && !isArchive){
+      tagHtml = `<button class="tag tag-btn ${m.paid ? "paid" : "unpaid"}" data-toggle-id="${m.id}">
+        ${m.paid ? "Paid ✓" : "Mark Paid"}
+      </button>`;
+    }
+
     row.innerHTML = `
-      <div class="name">${escapeHtml(m.name)}</div>
+      <div class="name-col">
+        <div class="name">${escapeHtml(m.name)}</div>
+        ${paidAtText ? `<div class="paid-date">${paidAtText}</div>` : ''}
+      </div>
       <div class="amount">${fmtMoney(m.share, currency)}</div>
-      <div class="tag ${m.paid ? "paid" : "unpaid"}">${m.paid ? "Paid" : "Unpaid"}</div>
+      <div>${tagHtml}</div>
     `;
     els.memberLedger.appendChild(row);
   });
+
+  if(loggedIn && !isArchive){
+    els.memberLedger.querySelectorAll("[data-toggle-id]").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        const id = e.currentTarget.dataset.toggleId;
+        const targetMember = currentData.members.find(m => m.id === id);
+        if(targetMember){
+          targetMember.paid = !targetMember.paid;
+          targetMember.paidAt = targetMember.paid ? new Date().toISOString() : null;
+          render();
+          showToast("Saving status...", "info");
+          await saveChanges(true);
+        }
+      });
+    });
+  }
+}
+
+function renderMatrix(){
+  if(!currentData) return;
+  const history = currentData.history || [];
+  const currentMembers = currentData.members || [];
+  
+  if(currentMembers.length === 0){
+    els.matrixCard.innerHTML = `<div class="empty">No members to track.</div>`;
+    return;
+  }
+
+  const columns = [
+    { id: 'current', label: 'Current' },
+    ...history.slice().reverse().map(h => ({ id: h.id, label: h.cycleLabel || h.billingDate || 'Past' }))
+  ];
+
+  let html = `<table class="matrix-table"><thead><tr><th>Member</th>`;
+  columns.forEach(col => {
+    html += `<th>${escapeHtml(col.label)}</th>`;
+  });
+  html += `<th>Overall</th></tr></thead><tbody>`;
+
+  currentMembers.forEach(m => {
+    let totalPaidCount = 0;
+    let totalCyclesCount = columns.length;
+
+    html += `<tr><td><strong>${escapeHtml(m.name)}</strong></td>`;
+
+    columns.forEach(col => {
+      let isPaid = false;
+      if(col.id === 'current'){
+        isPaid = m.paid;
+      } else {
+        const histCycle = history.find(h => h.id === col.id);
+        if(histCycle && histCycle.members){
+          const histMember = histCycle.members.find(hm => hm.id === m.id || hm.name === m.name);
+          isPaid = histMember ? histMember.paid : false;
+        }
+      }
+      if(isPaid) totalPaidCount++;
+
+      html += `<td>
+        <span class="matrix-status ${isPaid ? 'ok' : 'miss'}">
+          ${isPaid ? '✓ Paid' : '✕ Pending'}
+        </span>
+      </td>`;
+    });
+
+    const pct = Math.round((totalPaidCount / totalCyclesCount) * 100);
+    html += `<td><span class="matrix-status ok">${totalPaidCount}/${totalCyclesCount} (${pct}%)</span></td></tr>`;
+  });
+
+  html += `</tbody></table>`;
+  els.matrixCard.innerHTML = html;
 }
 
 function escapeHtml(str){
@@ -433,11 +755,12 @@ function escapeHtml(str){
   d.textContent = str || "";
   return d.innerHTML;
 }
+function escapeAttr(str){ return (str || "").replace(/"/g, "&quot;"); }
 
 /* ---------------- Admin: login / logout ---------------- */
 els.loginBtn.addEventListener("click", () => {
   const token = prompt(
-    "Paste your GitHub personal access token.\n\nIt's stored only in this browser's localStorage and used to call the GitHub API directly from this page."
+    "Paste your GitHub personal access token.\n\nIt is stored strictly in your browser's localStorage to write updates directly to data.json via GitHub API."
   );
   if(token){
     setToken(token.trim());
@@ -456,14 +779,52 @@ function updateAdminUI(){
   const loggedIn = !!getToken();
   els.loginBtn.style.display = loggedIn ? "none" : "inline-block";
   els.logoutBtn.style.display = loggedIn ? "inline-block" : "none";
-  els.editBtn.style.display = loggedIn ? "inline-block" : "none";
+  els.editBtn.style.display = (loggedIn && selectedCycleId === "current") ? "inline-block" : "none";
+  els.startCycleBtn.style.display = (loggedIn && selectedCycleId === "current") ? "inline-block" : "none";
 }
+
+/* ---------------- Admin: Start New Cycle ---------------- */
+els.startCycleBtn.addEventListener("click", async () => {
+  if(!confirm("Start a new billing cycle?\n\nThis will archive current contributions to History and reset all member payment statuses for the upcoming cycle.")) return;
+
+  const bDate = new Date(currentData.plan.billingDate || Date.now());
+  const monthName = bDate.toLocaleString('default', { month: 'long', year: 'numeric' });
+  
+  const historyEntry = {
+    id: `h-${Date.now()}`,
+    cycleLabel: monthName,
+    billingDate: currentData.plan.billingDate,
+    totalCost: currentData.plan.totalCost,
+    currency: currentData.plan.currency,
+    archivedAt: new Date().toISOString(),
+    members: JSON.parse(JSON.stringify(currentData.members))
+  };
+
+  if(!currentData.history) currentData.history = [];
+  currentData.history.unshift(historyEntry);
+
+  currentData.members.forEach(m => {
+    m.paid = false;
+    m.paidAt = null;
+  });
+
+  if(currentData.plan.billingDate){
+    const d = new Date(currentData.plan.billingDate);
+    d.setMonth(d.getMonth() + 1);
+    currentData.plan.billingDate = d.toISOString().split("T")[0];
+  }
+
+  showToast("Archiving cycle & resetting...", "info");
+  await saveChanges(false);
+  populateCycleSelector();
+  render();
+});
 
 /* ---------------- Admin: edit panel ---------------- */
 els.editBtn.addEventListener("click", () => {
   isEditing = !isEditing;
   els.editPanel.style.display = isEditing ? "block" : "none";
-  els.editBtn.textContent = isEditing ? "Close editor" : "Edit";
+  els.editBtn.textContent = isEditing ? "Close Editor" : "Edit Plan";
   if(isEditing) renderEditPanel();
 });
 
@@ -490,7 +851,7 @@ function renderEditPanel(){
     </div>
 
     <div class="section-head" style="margin-top:6px;">
-      <h2>Members</h2>
+      <h2>Members Configuration</h2>
       <button id="addMemberBtn" class="small ghost">+ Add member</button>
     </div>
     <div id="memberEditList"></div>
@@ -504,7 +865,7 @@ function renderEditPanel(){
   renderMemberEditList();
 
   document.getElementById("addMemberBtn").addEventListener("click", () => {
-    currentData.members.push({id: crypto.randomUUID(), name:"New member", share:0, paid:false});
+    currentData.members.push({id: crypto.randomUUID ? crypto.randomUUID() : 'm-' + Date.now(), name:"New member", share:0, paid:false, paidAt:null});
     renderMemberEditList();
   });
   document.getElementById("splitEvenlyBtn").addEventListener("click", () => {
@@ -514,10 +875,8 @@ function renderEditPanel(){
     currentData.members.forEach(m => m.share = each);
     renderMemberEditList();
   });
-  document.getElementById("saveBtn").addEventListener("click", saveChanges);
+  document.getElementById("saveBtn").addEventListener("click", () => saveChanges(false));
 }
-
-function escapeAttr(str){ return (str || "").replace(/"/g, "&quot;"); }
 
 function renderMemberEditList(){
   const list = document.getElementById("memberEditList");
@@ -543,6 +902,7 @@ function renderMemberEditList(){
       const field = e.target.dataset.field;
       if(field === "paid"){
         currentData.members[idx].paid = e.target.checked;
+        currentData.members[idx].paidAt = e.target.checked ? (currentData.members[idx].paidAt || new Date().toISOString()) : null;
       } else if(field === "share"){
         currentData.members[idx].share = Number(e.target.value);
       } else {
@@ -559,20 +919,25 @@ function renderMemberEditList(){
   });
 }
 
-async function saveChanges(){
+async function saveChanges(silent=false){
   const statusEl = document.getElementById("statusMsg");
   const token = getToken();
   if(!token){
-    statusEl.innerHTML = `<div class="status-msg err">Not logged in.</div>`;
+    if(statusEl) statusEl.innerHTML = `<div class="status-msg err">Not logged in.</div>`;
+    showToast("Not logged in", "err");
     return;
   }
-  currentData.plan.name = document.getElementById("f_name").value;
-  currentData.plan.currency = document.getElementById("f_currency").value;
-  currentData.plan.totalCost = Number(document.getElementById("f_total").value);
-  currentData.plan.billingDate = document.getElementById("f_date").value;
+
+  if(document.getElementById("f_name")){
+    currentData.plan.name = document.getElementById("f_name").value;
+    currentData.plan.currency = document.getElementById("f_currency").value;
+    currentData.plan.totalCost = Number(document.getElementById("f_total").value);
+    currentData.plan.billingDate = document.getElementById("f_date").value;
+  }
   currentData.lastUpdated = new Date().toISOString();
 
-  statusEl.innerHTML = `<div class="status-msg info">Saving…</div>`;
+  if(statusEl) statusEl.innerHTML = `<div class="status-msg info">Saving to GitHub…</div>`;
+  if(!silent) showToast("Saving data...", "info");
 
   const body = {
     message: `Update plan ledger (${new Date().toISOString()})`,
@@ -597,10 +962,13 @@ async function saveChanges(){
     }
     const resJson = await res.json();
     currentSha = resJson.content.sha;
-    statusEl.innerHTML = `<div class="status-msg ok">Saved. It may take a minute to show for other viewers.</div>`;
+    
+    if(statusEl) statusEl.innerHTML = `<div class="status-msg ok">Saved to GitHub successfully.</div>`;
+    showToast("Saved ✓", "ok");
     render();
   }catch(err){
-    statusEl.innerHTML = `<div class="status-msg err">Save failed — ${err.message}</div>`;
+    if(statusEl) statusEl.innerHTML = `<div class="status-msg err">Save failed — ${err.message}</div>`;
+    showToast(`Save failed: ${err.message}`, "err");
   }
 }
 
