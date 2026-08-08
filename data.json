@@ -30,7 +30,7 @@
     }
   ],
   "history": [],
-  "lastUpdated": "2026-08-08T12:58:24.410Z",
+  "lastUpdated": "2026-08-08T13:04:21.313Z",
   "registeredMembers": [
     {
       "id": "m1",
@@ -47,7 +47,7 @@
     {
       "id": "m3",
       "name": "Member 3",
-      "active": false,
+      "active": true,
       "joinedAt": "2026-08-08T12:57:49.680Z"
     }
   ]
