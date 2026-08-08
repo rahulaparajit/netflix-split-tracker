@@ -540,11 +540,79 @@
     flex-shrink:0;
   }
 
-  /* ---- Responsive Table Wrapper ---- */
-  .table-responsive{
+  /* ---- Custom Modal Overlay & Dialog ---- */
+  .modal-overlay{
+    position:fixed;
+    top:0;left:0;right:0;bottom:0;
+    background:rgba(0,0,0,.65);
+    backdrop-filter:blur(4px);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:16px;
+    z-index:2000;
+    animation:fadeIn .2s ease;
+  }
+  @keyframes fadeIn{
+    from{opacity:0;}
+    to{opacity:1;}
+  }
+  .modal-card{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
     width:100%;
-    overflow-x:auto;
-    -webkit-overflow-scrolling:touch;
+    max-width:440px;
+    box-shadow:0 16px 40px rgba(0,0,0,.5);
+    overflow:hidden;
+    animation:scaleUp .2s ease;
+  }
+  @keyframes scaleUp{
+    from{transform:scale(0.95);opacity:0;}
+    to{transform:scale(1);opacity:1;}
+  }
+  .modal-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:16px 20px;
+    border-bottom:1px solid var(--line);
+    background:var(--surface-2);
+  }
+  .modal-header h3{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:18px;
+    font-weight:700;
+    margin:0;
+    color:var(--ink);
+  }
+  .modal-body{
+    padding:20px;
+  }
+  .modal-desc{
+    font-size:13px;
+    color:var(--ink-dim);
+    margin:0 0 16px;
+    line-height:1.45;
+  }
+  .modal-note{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--ink-dim);
+    margin-top:14px;
+    line-height:1.4;
+  }
+  .modal-footer{
+    display:flex;
+    justify-content:flex-end;
+    gap:10px;
+    padding:14px 20px;
+    background:var(--surface-2);
+    border-top:1px solid var(--line);
+  }
+  .icon-only{
+    padding:4px 8px;
+    line-height:1;
   }
 
   @media (max-width:600px){
@@ -637,6 +705,26 @@
   </div>
 </div>
 
+<div id="loginModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3>Login</h3>
+      <button id="closeLoginModalBtn" class="small ghost icon-only" title="Close">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="field" style="margin-bottom:0;">
+        <label for="adminTokenInput">GitHub Personal Access Token</label>
+        <input type="password" id="adminTokenInput" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" autocomplete="off">
+      </div>
+      <div id="loginModalMsg" class="status-msg" style="display:none;margin-top:12px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button id="cancelLoginBtn" class="small ghost">Cancel</button>
+      <button id="submitLoginBtn" class="small primary">Login</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ======================= CONFIG ======================= *
  * Update these three values to point at YOUR repo before  *
@@ -685,6 +773,12 @@ const els = {
   installBanner: document.getElementById("installBanner"),
   installAppBtn: document.getElementById("installAppBtn"),
   dismissInstallBtn: document.getElementById("dismissInstallBtn"),
+  loginModal: document.getElementById("loginModal"),
+  closeLoginModalBtn: document.getElementById("closeLoginModalBtn"),
+  adminTokenInput: document.getElementById("adminTokenInput"),
+  loginModalMsg: document.getElementById("loginModalMsg"),
+  cancelLoginBtn: document.getElementById("cancelLoginBtn"),
+  submitLoginBtn: document.getElementById("submitLoginBtn"),
   toast: document.getElementById("toast")
 };
 
@@ -816,9 +910,18 @@ function showToast(msg, type="info", duration=3000){
 
 async function loadData(){
   els.memberLedger.innerHTML = `<div class="empty">Loading member data…</div>`;
+  const token = getToken();
+  if(token){
+    validateToken(token).then(isValid => {
+      if(!isValid){
+        clearToken();
+        updateAdminUI();
+        render();
+      }
+    });
+  }
   try{
     const headers = {"Accept":"application/vnd.github+json"};
-    const token = getToken();
     if(token) headers["Authorization"] = `Bearer ${token}`;
     const res = await fetch(`${API_BASE}?ref=${CONFIG.branch}&_=${Date.now()}`, {headers});
     if(!res.ok){
@@ -1193,17 +1296,99 @@ function escapeHtml(str){
 }
 function escapeAttr(str){ return (str || "").replace(/"/g, "&quot;"); }
 
-/* ---------------- Admin: login / logout ---------------- */
+/* ---------------- Admin: Custom Login Modal & Token Validation ---------------- */
+async function validateToken(token){
+  if(!token || !token.trim()) return false;
+  try {
+    const res = await fetch("https://api.github.com/user", {
+      headers: {
+        "Authorization": `token ${token.trim()}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+    if(res.status === 200) return true;
+
+    // Fallback verification directly against repository Contents API
+    const resRepo = await fetch(`${API_BASE}?ref=${CONFIG.branch}`, {
+      headers: {
+        "Authorization": `token ${token.trim()}`,
+        "Accept": "application/vnd.github.v3+json"
+      }
+    });
+    return resRepo.status === 200;
+  } catch(e) {
+    return false;
+  }
+}
+
+function showModalError(msg){
+  if(!els.loginModalMsg) return;
+  els.loginModalMsg.className = "status-msg err";
+  els.loginModalMsg.textContent = msg;
+  els.loginModalMsg.style.display = "block";
+}
+
+function showModalInfo(msg){
+  if(!els.loginModalMsg) return;
+  els.loginModalMsg.className = "status-msg info";
+  els.loginModalMsg.textContent = msg;
+  els.loginModalMsg.style.display = "block";
+}
+
+function closeLoginModal(){
+  if(els.loginModal) els.loginModal.style.display = "none";
+  if(els.loginModalMsg) els.loginModalMsg.style.display = "none";
+}
+
 els.loginBtn.addEventListener("click", () => {
-  const token = prompt(
-    "Paste your GitHub personal access token."
-  );
-  if(token){
-    setToken(token.trim());
+  els.adminTokenInput.value = "";
+  els.loginModalMsg.style.display = "none";
+  els.loginModal.style.display = "flex";
+  setTimeout(() => els.adminTokenInput.focus(), 100);
+});
+
+if(els.closeLoginModalBtn) els.closeLoginModalBtn.addEventListener("click", closeLoginModal);
+if(els.cancelLoginBtn) els.cancelLoginBtn.addEventListener("click", closeLoginModal);
+
+if(els.loginModal){
+  els.loginModal.addEventListener("click", (e) => {
+    if(e.target === els.loginModal) closeLoginModal();
+  });
+}
+
+async function handleLoginSubmit(){
+  const token = els.adminTokenInput.value.trim();
+  if(!token){
+    showModalError("Please enter your GitHub Personal Access Token.");
+    return;
+  }
+
+  showModalInfo("Validating GitHub token authorization...");
+  els.submitLoginBtn.disabled = true;
+
+  const isValid = await validateToken(token);
+  els.submitLoginBtn.disabled = false;
+
+  if(isValid){
+    setToken(token);
+    closeLoginModal();
+    showToast("Admin authenticated successfully", "ok");
     updateAdminUI();
     loadData();
+  } else {
+    clearToken();
+    updateAdminUI();
+    showModalError("Unauthorized! Invalid or expired GitHub token. Access denied.");
   }
-});
+}
+
+if(els.submitLoginBtn) els.submitLoginBtn.addEventListener("click", handleLoginSubmit);
+if(els.adminTokenInput){
+  els.adminTokenInput.addEventListener("keydown", (e) => {
+    if(e.key === "Enter") handleLoginSubmit();
+  });
+}
+
 els.logoutBtn.addEventListener("click", () => {
   clearToken();
   isEditing = false;
@@ -1211,8 +1396,10 @@ els.logoutBtn.addEventListener("click", () => {
   updateAdminUI();
   els.editPanel.style.display = "none";
   els.registryPanel.style.display = "none";
+  showToast("Logged out", "info");
   loadData();
 });
+
 function updateAdminUI(){
   const loggedIn = !!getToken();
   els.loginBtn.style.display = loggedIn ? "none" : "inline-block";
