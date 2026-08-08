@@ -24,31 +24,44 @@
       "name": "Ameya.H",
       "active": true,
       "joinedAt": "2026-08-08T13:21:00.152Z"
+    },
+    {
+      "id": "m-mskejp19",
+      "name": "Nikhil",
+      "active": true,
+      "joinedAt": "2026-08-08T13:21:12.573Z"
     }
   ],
   "members": [
     {
       "id": "m-mskei0ih",
       "name": "Rahul",
-      "share": 216.33,
+      "share": 162.25,
       "paid": false,
       "paidAt": null
     },
     {
       "id": "m-mskeizj5",
       "name": "Abhijeet",
-      "share": 216.33,
+      "share": 162.25,
       "paid": false,
       "paidAt": null
     },
     {
       "id": "m-mskejfg8",
       "name": "Ameya.H",
-      "share": 216.33,
+      "share": 162.25,
+      "paid": false,
+      "paidAt": null
+    },
+    {
+      "id": "m-mskejp19",
+      "name": "Nikhil",
+      "share": 162.25,
       "paid": false,
       "paidAt": null
     }
   ],
   "history": [],
-  "lastUpdated": "2026-08-08T13:21:01.597Z"
+  "lastUpdated": "2026-08-08T13:21:14.874Z"
 }
