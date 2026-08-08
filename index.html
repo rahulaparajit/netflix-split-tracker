@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Plan Ledger — Shared Netflix Subscription</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="icon.svg">
+<link rel="apple-touch-icon" href="icon.svg">
+<meta name="theme-color" content="#e1362b">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Plan Ledger">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -465,13 +471,67 @@
   .empty{
     text-align:center;padding:40px 20px;color:var(--ink-dim);font-size:13px;
   }
-  .footer-note{
-    margin-top:40px;text-align:center;color:var(--ink-dim);font-size:11.5px;
-    font-family:'JetBrains Mono',monospace;
+  /* ---- Mobile PWA Install Banner ---- */
+  .install-banner{
+    position:fixed;
+    bottom:20px;
+    left:20px;
+    right:20px;
+    max-width:480px;
+    margin:0 auto;
+    background:var(--surface);
+    border:1px solid var(--gold);
+    border-radius:var(--radius);
+    padding:12px 16px;
+    box-shadow:0 10px 30px rgba(0,0,0,.45);
+    z-index:1000;
+    animation:slideUp .3s ease;
   }
-  @media (max-width:520px){
+  @keyframes slideUp{
+    from{transform:translateY(80px);opacity:0;}
+    to{transform:translateY(0);opacity:1;}
+  }
+  .install-banner-content{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+  }
+  .install-banner-text strong{
+    display:block;
+    font-size:13px;
+    color:var(--ink);
+  }
+  .install-banner-text span{
+    font-size:11.5px;
+    color:var(--ink-dim);
+  }
+  .install-banner-actions{
+    display:flex;
+    gap:6px;
+    align-items:center;
+  }
+
+  /* ---- Responsive Table Wrapper ---- */
+  .table-responsive{
+    width:100%;
+    overflow-x:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+
+  @media (max-width:600px){
+    .wrap{padding:16px 12px 60px;}
+    .top-bar{flex-direction:column;align-items:stretch;gap:10px;}
+    .admin-toggle{display:flex;flex-wrap:wrap;width:100%;gap:6px;}
+    .admin-toggle button{flex:1 1 auto;text-align:center;justify-content:center;min-height:38px;}
+    .cycle-picker{width:100%;justify-content:space-between;}
+    .cycle-select{flex:1;width:100%;min-height:38px;}
+    .stub{padding:20px 18px 16px;}
+    .stub-title{font-size:22px;}
+    .stub-total .amount{font-size:32px;}
     .grid-2{grid-template-columns:1fr;}
     .member-edit-row{grid-template-columns:1fr 1fr;}
+    .row{padding:12px 14px;}
   }
 </style>
 </head>
@@ -535,6 +595,19 @@
 
 <div id="toast" class="status-toast"></div>
 
+<div id="installBanner" class="install-banner" style="display:none;">
+  <div class="install-banner-content">
+    <div class="install-banner-text">
+      <strong>Install Plan Ledger App</strong>
+      <span>Add to home screen for instant mobile access</span>
+    </div>
+    <div class="install-banner-actions">
+      <button id="installAppBtn" class="small primary">Install</button>
+      <button id="dismissInstallBtn" class="small ghost">✕</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ======================= CONFIG ======================= *
  * Update these three values to point at YOUR repo before  *
@@ -580,11 +653,48 @@ const els = {
   editPanel: document.getElementById("editPanel"),
   registryPanel: document.getElementById("registryPanel"),
   themeToggleBtn: document.getElementById("themeToggleBtn"),
+  installBanner: document.getElementById("installBanner"),
+  installAppBtn: document.getElementById("installAppBtn"),
+  dismissInstallBtn: document.getElementById("dismissInstallBtn"),
   toast: document.getElementById("toast")
 };
 
 const SEG_COLORS = ["#e1362b","#d8a657","#7e9cd8","#7ec98f","#c98fd8","#d8c47e","#8fd8c9","#d87e9c"];
 const THEME_KEY = "planLedger_theme";
+
+// Register Service Worker for PWA compliance
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// Handle Mobile Browser PWA Install Prompt
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  deferredPrompt = e;
+  if (els.installBanner) els.installBanner.style.display = "block";
+});
+
+if (els.installAppBtn) {
+  els.installAppBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      if (els.installBanner) els.installBanner.style.display = "none";
+    } else {
+      alert("To install Plan Ledger on iOS Safari:\n\n1. Tap the Share icon (square with upward arrow)\n2. Select 'Add to Home Screen'");
+    }
+  });
+}
+
+if (els.dismissInstallBtn) {
+  els.dismissInstallBtn.addEventListener('click', () => {
+    if (els.installBanner) els.installBanner.style.display = "none";
+  });
+}
 
 function getTheme(){ return localStorage.getItem(THEME_KEY) || "light"; }
 function setTheme(t){
@@ -1004,7 +1114,7 @@ function renderMatrix(){
     return;
   }
 
-  let html = `<table class="matrix-table"><thead><tr><th>Registered Member</th>`;
+  let html = `<div class="table-responsive"><table class="matrix-table"><thead><tr><th>Registered Member</th>`;
   columns.forEach(col => {
     html += `<th>${escapeHtml(col.label)}</th>`;
   });
@@ -1043,7 +1153,7 @@ function renderMatrix(){
     html += `<td><span class="matrix-status ok">${totalPaidCount}/${totalCyclesCount} (${pct}%)</span></td></tr>`;
   });
 
-  html += `</tbody></table>`;
+  html += `</tbody></table></div>`;
   els.matrixCard.innerHTML = html;
 }
 
@@ -1108,7 +1218,8 @@ function renderRegistryPanel(){
         <div class="empty-desc">Click <strong>+ Register New Member</strong> above to add your first persistent member.</div>
       </div>
     ` : `
-      <table class="registry-table">
+      <div class="table-responsive">
+        <table class="registry-table">
         <thead>
           <tr>
             <th>Member ID</th>
@@ -1137,6 +1248,7 @@ function renderRegistryPanel(){
           `).join('')}
         </tbody>
       </table>
+    </div>
     `}
   `;
 
