@@ -561,7 +561,7 @@ const els = {
 const SEG_COLORS = ["#e1362b","#d8a657","#7e9cd8","#7ec98f","#c98fd8","#d8c47e","#8fd8c9","#d87e9c"];
 const THEME_KEY = "planLedger_theme";
 
-function getTheme(){ return localStorage.getItem(THEME_KEY) || "dark"; }
+function getTheme(){ return localStorage.getItem(THEME_KEY) || "light"; }
 function setTheme(t){
   localStorage.setItem(THEME_KEY, t);
   document.documentElement.setAttribute("data-theme", t);
