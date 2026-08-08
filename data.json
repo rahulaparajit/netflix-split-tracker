@@ -95,8 +95,8 @@
           "id": "m-mskeizj5",
           "name": "Abhijeet",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-08T13:41:23.127Z"
         },
         {
           "id": "m-mskejfg8",
@@ -347,5 +347,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T13:41:21.700Z"
+  "lastUpdated": "2026-08-08T13:41:23.132Z"
 }
