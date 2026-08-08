@@ -936,12 +936,15 @@ function renderMatrix(){
   const currInfo = getCycleDurationInfo(currentData.plan.billingDate);
 
   const columns = [
-    { id: 'current', label: currInfo.shortLabel },
+    { id: 'current', label: currInfo.shortLabel, dateStr: currentData.plan.billingDate || '9999-12-31' },
     ...history.slice().map(h => {
       const hInfo = getCycleDurationInfo(h.billingDate);
-      return { id: h.id, label: h.cycleLabel || hInfo.shortLabel };
+      return { id: h.id, label: h.cycleLabel || hInfo.shortLabel, dateStr: h.billingDate || '' };
     })
   ];
+
+  // Sort matrix columns by descending date (newest/current billing period on left -> oldest on right)
+  columns.sort((a, b) => (b.dateStr > a.dateStr ? 1 : b.dateStr < a.dateStr ? -1 : 0));
 
   const memberMap = new Map();
   registered.forEach(rm => memberMap.set(rm.id, { name: rm.name, active: rm.active }));
