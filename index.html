@@ -865,9 +865,33 @@ if(els.themeToggleBtn){
   });
 }
 
-function getToken(){ return localStorage.getItem(TOKEN_KEY); }
-function setToken(t){ localStorage.setItem(TOKEN_KEY, t); }
-function clearToken(){ localStorage.removeItem(TOKEN_KEY); }
+function setToken(t){
+  if(!t) return;
+  const val = t.trim();
+  const isHttps = window.location.protocol === 'https:';
+  const secureFlag = isHttps ? '; Secure' : '';
+  document.cookie = `${TOKEN_KEY}=${encodeURIComponent(val)}; path=/; max-age=2592000; SameSite=Strict${secureFlag}`;
+  try { localStorage.setItem(TOKEN_KEY, val); } catch(e) {}
+}
+
+function getToken(){
+  const name = TOKEN_KEY + "=";
+  const decodedCookie = decodeURIComponent(document.cookie || "");
+  const ca = decodedCookie.split(';');
+  for(let i = 0; i < ca.length; i++) {
+    let c = ca[i].trim();
+    if (c.indexOf(name) === 0) {
+      const val = c.substring(name.length, c.length);
+      if(val) return val;
+    }
+  }
+  try { return localStorage.getItem(TOKEN_KEY); } catch(e) { return null; }
+}
+
+function clearToken(){
+  document.cookie = `${TOKEN_KEY}=; path=/; max-age=0; SameSite=Strict`;
+  try { localStorage.removeItem(TOKEN_KEY); } catch(e) {}
+}
 
 function b64EncodeUnicode(str){
   return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g,
