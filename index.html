@@ -489,8 +489,7 @@
     <div class="admin-toggle">
       <button id="themeToggleBtn" class="small ghost" title="Toggle Light/Dark Theme">☀️ Light</button>
       <button id="registryBtn" class="small ghost" style="display:none;" title="Manage Master Registered Members">Member Registry</button>
-      <button id="addPastCycleBtn" class="small ghost" style="display:none;" title="Create a custom past/historical cycle">+ Past Cycle</button>
-      <button id="startCycleBtn" class="small ghost" style="display:none;" title="Archive current cycle & reset for next month">Start Next Cycle</button>
+      <button id="addPastCycleBtn" class="small ghost" style="display:none;" title="Create a new billing cycle (Active, Future, or Past)">+ Create Cycle</button>
       <button id="loginBtn" class="small">Admin login</button>
       <button id="logoutBtn" class="small ghost" style="display:none;">Log out</button>
     </div>
@@ -575,7 +574,6 @@ const els = {
   matrixCard: document.getElementById("matrixCard"),
   loginBtn: document.getElementById("loginBtn"),
   logoutBtn: document.getElementById("logoutBtn"),
-  startCycleBtn: document.getElementById("startCycleBtn"),
   addPastCycleBtn: document.getElementById("addPastCycleBtn"),
   registryBtn: document.getElementById("registryBtn"),
   editBtn: document.getElementById("editBtn"),
@@ -1081,7 +1079,6 @@ function updateAdminUI(){
   els.loginBtn.style.display = loggedIn ? "none" : "inline-block";
   els.logoutBtn.style.display = loggedIn ? "inline-block" : "none";
   els.editBtn.style.display = loggedIn ? "inline-block" : "none";
-  els.startCycleBtn.style.display = (loggedIn && selectedCycleId === "current") ? "inline-block" : "none";
   els.addPastCycleBtn.style.display = loggedIn ? "inline-block" : "none";
   els.registryBtn.style.display = loggedIn ? "inline-block" : "none";
 }
@@ -1220,81 +1217,46 @@ function renderRegistryPanel(){
   });
 }
 
-/* ---------------- Admin: Start Next Cycle ---------------- */
-els.startCycleBtn.addEventListener("click", async () => {
-  if(!confirm("Start next billing cycle?\n\nThis will archive current contributions to History and reset member payment statuses for active registered members.")) return;
-
-  const currentDuration = getCycleDurationInfo(currentData.plan.billingDate);
-  
-  const historyEntry = {
-    id: `h-${Date.now()}`,
-    cycleLabel: currentDuration.label,
-    billingDate: currentData.plan.billingDate,
-    totalCost: currentData.plan.totalCost,
-    currency: currentData.plan.currency,
-    archivedAt: new Date().toISOString(),
-    members: JSON.parse(JSON.stringify(currentData.members || []))
-  };
-
-  if(!currentData.history) currentData.history = [];
-  currentData.history.unshift(historyEntry);
-
-  const activeReg = (currentData.registeredMembers || []).filter(m => m.active);
-  const n = activeReg.length || 1;
-  const eachShare = Math.round((Number(currentData.plan.totalCost || 0) / n) * 100) / 100;
-
-  currentData.members = activeReg.map(rm => ({
-    id: rm.id,
-    name: rm.name,
-    share: eachShare,
-    paid: false,
-    paidAt: null
-  }));
-
-  const parts = (currentData.plan.billingDate || "2026-08-26").split('-');
-  let yr = Number(parts[0]);
-  let mo = Number(parts[1]);
-  mo++;
-  if(mo > 12){
-    mo = 1;
-    yr++;
-  }
-  const nextMoStr = String(mo).padStart(2, '0');
-  currentData.plan.billingDate = `${yr}-${nextMoStr}-26`;
-
-  showToast("Archiving cycle & resetting...", "info");
-  await saveChanges(false);
-  populateCycleSelector();
-  render();
-});
-
-/* ---------------- Admin: Create Custom Past/Future Cycle ---------------- */
+/* ---------------- Admin: Create New Billing Cycle ---------------- */
 els.addPastCycleBtn.addEventListener("click", async () => {
-  const typeChoice = prompt("Select cycle type:\n1. Future Advance Cycle (Blue Badge)\n2. Past Archived Cycle (Gold Badge)\n\nEnter 1 or 2:", "1");
+  const typeChoice = prompt(
+    "Select Cycle Type to create:\n\n" +
+    "1. Active Cycle (Green Badge)\n" +
+    "2. Future Advance Cycle (Blue Badge)\n" +
+    "3. Past Archived Cycle (Gold Badge)\n\n" +
+    "Enter choice (1, 2, or 3):",
+    "1"
+  );
   if(!typeChoice) return;
-  const cycleStatus = typeChoice.trim() === "1" ? "future" : "archived";
 
-  const bDateInput = prompt("Enter billing date for this cycle (YYYY-MM-26):", cycleStatus === "future" ? "2026-09-26" : "2026-07-26");
+  const rawChoice = typeChoice.trim();
+  let cycleStatus = "active";
+  if(rawChoice === "2") cycleStatus = "future";
+  else if(rawChoice === "3") cycleStatus = "archived";
+
+  const defaultBDate = cycleStatus === "future" ? "2026-09-26" : cycleStatus === "archived" ? "2026-07-26" : "2026-08-26";
+  const bDateInput = prompt("Enter billing date for this cycle (YYYY-MM-26):", defaultBDate);
   if(!bDateInput) return;
 
   const parts = bDateInput.trim().split('-');
   let yr = Number(parts[0] || 2026);
-  let mo = Number(parts[1] || (cycleStatus === "future" ? 9 : 7));
+  let mo = Number(parts[1] || 8);
   const fixedBDate = `${yr}-${String(mo).padStart(2, '0')}-26`;
   const durationInfo = getCycleDurationInfo(fixedBDate);
 
-  const customLabel = prompt("Enter cycle label/duration:", durationInfo.label) || durationInfo.label;
+  const customLabel = prompt("Enter cycle label / range description:", durationInfo.label) || durationInfo.label;
 
   const activeReg = (currentData.registeredMembers || []).filter(m => m.active);
   const n = activeReg.length || 1;
-  const eachShare = Math.round((Number(currentData.plan.totalCost || 649) / n) * 100) / 100;
+  const totalCost = Number(currentData.plan.totalCost || 649);
+  const eachShare = Math.round((totalCost / n) * 100) / 100;
 
   const newHistEntry = {
     id: `h-${Date.now()}`,
     cycleLabel: customLabel,
     billingDate: fixedBDate,
     status: cycleStatus,
-    totalCost: currentData.plan.totalCost || 649,
+    totalCost: totalCost,
     currency: currentData.plan.currency || "₹",
     archivedAt: new Date().toISOString(),
     members: activeReg.map(rm => ({
@@ -1309,7 +1271,7 @@ els.addPastCycleBtn.addEventListener("click", async () => {
   if(!currentData.history) currentData.history = [];
   currentData.history.unshift(newHistEntry);
 
-  showToast("Adding custom cycle...", "info");
+  showToast(`Creating ${cycleStatus} cycle...`, "info");
   await saveChanges(false);
   selectedCycleId = newHistEntry.id;
   populateCycleSelector();
