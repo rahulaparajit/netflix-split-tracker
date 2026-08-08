@@ -5,7 +5,7 @@
     "currency": "₹",
     "billingDate": "2026-08-26",
     "notes": "Prepaid plan · Billed on 26th of every month",
-    "status": "archived"
+    "status": "active"
   },
   "registeredMembers": [
     {
@@ -440,5 +440,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T17:29:29.326Z"
+  "lastUpdated": "2026-08-08T17:29:34.461Z"
 }
