@@ -6,8 +6,23 @@
     "billingDate": "2026-08-26",
     "notes": "Prepaid plan · Billed on 26th of every month"
   },
-  "registeredMembers": [],
-  "members": [],
+  "registeredMembers": [
+    {
+      "id": "m-mskei0ih",
+      "name": "Rahul",
+      "active": true,
+      "joinedAt": "2026-08-08T13:19:54.138Z"
+    }
+  ],
+  "members": [
+    {
+      "id": "m-mskei0ih",
+      "name": "Rahul",
+      "share": 649,
+      "paid": false,
+      "paidAt": null
+    }
+  ],
   "history": [],
-  "lastUpdated": "2026-08-08T18:25:00.000Z"
+  "lastUpdated": "2026-08-08T13:20:06.951Z"
 }
