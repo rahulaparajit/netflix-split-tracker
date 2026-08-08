@@ -3,59 +3,11 @@
     "name": "Netflix Premium",
     "totalCost": 649,
     "currency": "₹",
-    "billingDate": "2026-07-27",
-    "notes": ""
+    "billingDate": "2026-08-26",
+    "notes": "Prepaid plan · Billed on 26th of every month"
   },
-  "members": [
-    {
-      "id": "m1",
-      "name": "Rahul",
-      "share": 129.8,
-      "paid": true
-    },
-    {
-      "id": "m2",
-      "name": "Ameya.H",
-      "share": 129.8,
-      "paid": true,
-      "paidAt": "2026-08-01T10:00:00.000Z"
-    },
-    {
-      "id": "m3",
-      "name": "Abhijeet",
-      "share": 129.8,
-      "paid": false,
-      "paidAt": null
-    },
-    {
-      "id": "e302d260-cb31-4858-8d93-6bbd30b79acb",
-      "name": "Nikhil",
-      "share": 129.8,
-      "paid": false,
-      "paidAt": null
-    },
-    {
-      "id": "76f0c8d0-9e40-4732-8740-fbe1284b71e7",
-      "name": "Ameya.Z",
-      "share": 129.8,
-      "paid": false,
-      "paidAt": null
-    }
-  ],
-  "history": [
-    {
-      "id": "h-2026-07",
-      "cycleLabel": "July 2026",
-      "billingDate": "2026-07-05",
-      "totalCost": 649,
-      "currency": "₹",
-      "archivedAt": "2026-08-01T00:00:00.000Z",
-      "members": [
-        { "id": "m1", "name": "You", "share": 217, "paid": true, "paidAt": "2026-07-02T14:20:00.000Z" },
-        { "id": "m2", "name": "Member 2", "share": 216, "paid": true, "paidAt": "2026-07-04T18:10:00.000Z" },
-        { "id": "m3", "name": "Member 3", "share": 216, "paid": true, "paidAt": "2026-07-05T09:00:00.000Z" }
-      ]
-    }
-  ],
-  "lastUpdated": "2026-08-08T17:30:00.000Z"
+  "registeredMembers": [],
+  "members": [],
+  "history": [],
+  "lastUpdated": "2026-08-08T18:25:00.000Z"
 }
