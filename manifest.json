@@ -1,7 +1,7 @@
 {
-  "name": "Plan Ledger — Shared Subscription",
-  "short_name": "Plan Ledger",
-  "description": "Track shared subscription plan contributions, billing cycles, and member payments.",
+  "name": "Netflix Split Tracker",
+  "short_name": "Netflix Split Tracker",
+  "description": "Track shared Netflix subscription contributions, billing cycles, and member payment compliance.",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#121110",
