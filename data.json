@@ -12,17 +12,30 @@
       "name": "Rahul",
       "active": true,
       "joinedAt": "2026-08-08T13:19:54.138Z"
+    },
+    {
+      "id": "m-mskeizj5",
+      "name": "Abhijeet",
+      "active": true,
+      "joinedAt": "2026-08-08T13:20:39.521Z"
     }
   ],
   "members": [
     {
       "id": "m-mskei0ih",
       "name": "Rahul",
-      "share": 649,
+      "share": 324.5,
+      "paid": false,
+      "paidAt": null
+    },
+    {
+      "id": "m-mskeizj5",
+      "name": "Abhijeet",
+      "share": 324.5,
       "paid": false,
       "paidAt": null
     }
   ],
   "history": [],
-  "lastUpdated": "2026-08-08T13:20:06.951Z"
+  "lastUpdated": "2026-08-08T13:20:46.072Z"
 }
