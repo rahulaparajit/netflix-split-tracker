@@ -2,14 +2,15 @@
   "name": "Netflix Split Tracker",
   "short_name": "Netflix Split Tracker",
   "description": "Track shared Netflix subscription contributions, billing cycles, and member payment compliance.",
-  "start_url": "./index.html",
+  "start_url": "./",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#121110",
   "theme_color": "#e1362b",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "icon.svg",
+      "src": "./icon.svg",
       "sizes": "192x192 512x512",
       "type": "image/svg+xml",
       "purpose": "any maskable"

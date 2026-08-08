@@ -9,9 +9,9 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>Netflix Split Tracker — Shared Subscription</title>
 <meta name="apple-mobile-web-app-title" content="Netflix Split Tracker">
-<link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="icon.svg">
-<link rel="apple-touch-icon" href="icon.svg">
+<link rel="manifest" href="./manifest.json" crossorigin="use-credentials">
+<link rel="icon" type="image/svg+xml" href="./icon.svg">
+<link rel="apple-touch-icon" href="./icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
@@ -392,14 +392,27 @@
   .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
   .member-edit-row{
     display:grid;
-    grid-template-columns:1fr 100px 90px auto;
-    gap:10px;
+    grid-template-columns:1fr 90px 75px 125px auto;
+    gap:8px;
     align-items:center;
     margin-bottom:10px;
   }
   .member-edit-row input, .member-edit-row select{
     background:var(--surface-2);border:1px solid var(--line);color:var(--ink);
     border-radius:6px;padding:8px 9px;font-size:13px;width:100%;
+  }
+  .paid-date-link{
+    background:none;
+    border:none;
+    padding:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--gold);
+    text-decoration:underline;
+    cursor:pointer;
+  }
+  .paid-date-link:hover{
+    opacity:.8;
   }
 
   .registry-table{
@@ -725,6 +738,20 @@
   </div>
 </div>
 
+<div id="customModal" class="modal-overlay" style="display:none;">
+  <div class="modal-card">
+    <div class="modal-header">
+      <h3 id="customModalTitle">Modal Title</h3>
+      <button id="closeCustomModalBtn" class="small ghost icon-only" title="Close">✕</button>
+    </div>
+    <div class="modal-body" id="customModalBody"></div>
+    <div class="modal-footer" id="customModalFooter">
+      <button id="customModalCancelBtn" class="small ghost">Cancel</button>
+      <button id="customModalConfirmBtn" class="small primary">Confirm</button>
+    </div>
+  </div>
+</div>
+
 <script>
 /* ======================= CONFIG ======================= *
  * Update these three values to point at YOUR repo before  *
@@ -808,7 +835,7 @@ if (els.installAppBtn) {
       deferredPrompt = null;
       if (els.installBanner) els.installBanner.style.display = "none";
     } else {
-      alert("To install Netflix Split Tracker on iOS Safari:\n\n1. Tap the Share icon (square with upward arrow)\n2. Select 'Add to Home Screen'");
+      await showCustomAlert("Install on iOS Safari", "1. Tap the Share icon in Safari (square with upward arrow)\n2. Select 'Add to Home Screen'");
     }
   });
 }
@@ -1157,20 +1184,30 @@ function renderLedger(members, currency, isArchive){
     const row = document.createElement("div");
     row.className = "row";
     
-    const paidAtText = m.paid && m.paidAt ? `Paid ${fmtDate(m.paidAt)}` : '';
+    const paidAtFormatted = m.paid && m.paidAt ? fmtDate(m.paidAt) : '';
+    let paidDateHtml = '';
+
+    if(loggedIn && m.paid){
+      paidDateHtml = `<button class="paid-date-link" data-set-date-id="${m.id}" title="Click to change payment date">Paid ${paidAtFormatted || 'date'} ✏️</button>`;
+    } else if(paidAtFormatted){
+      paidDateHtml = `<div class="paid-date">Paid ${paidAtFormatted}</div>`;
+    }
     
     let tagHtml = `<span class="tag ${m.paid ? "paid" : "unpaid"}">${m.paid ? "Paid ✓" : "Unpaid"}</span>`;
     
     if(loggedIn){
-      tagHtml = `<button class="tag tag-btn ${m.paid ? "paid" : "unpaid"}" data-toggle-id="${m.id}">
-        ${m.paid ? "Paid ✓" : "Mark Paid"}
-      </button>`;
+      tagHtml = `<div style="display:flex;gap:6px;align-items:center;">
+        <button class="tag tag-btn ${m.paid ? "paid" : "unpaid"}" data-toggle-id="${m.id}">
+          ${m.paid ? "Paid ✓" : "Mark Paid"}
+        </button>
+        ${m.paid ? `<button class="small ghost icon-only" data-set-date-id="${m.id}" title="Set Paid Date">📅</button>` : ''}
+      </div>`;
     }
 
     row.innerHTML = `
       <div class="name-col">
         <div class="name">${escapeHtml(m.name)}</div>
-        ${paidAtText ? `<div class="paid-date">${paidAtText}</div>` : ''}
+        ${paidDateHtml ? `<div>${paidDateHtml}</div>` : ''}
       </div>
       <div class="amount">${fmtMoney(m.share, currency)}</div>
       <div>${tagHtml}</div>
@@ -1186,11 +1223,51 @@ function renderLedger(members, currency, isArchive){
         const targetMember = targetMembers.find(m => m.id === id);
         if(targetMember){
           targetMember.paid = !targetMember.paid;
-          targetMember.paidAt = targetMember.paid ? new Date().toISOString() : null;
+          targetMember.paidAt = targetMember.paid ? (targetMember.paidAt || new Date().toISOString()) : null;
           render();
           showToast("Saving status...", "info");
           await saveChanges(true);
         }
+      });
+    });
+
+    els.memberLedger.querySelectorAll("[data-set-date-id]").forEach(btn => {
+      btn.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const id = e.currentTarget.dataset.setDateId;
+        let targetMembers = isArchive ? getActiveCycleData().members : currentData.members;
+        const targetMember = targetMembers.find(m => m.id === id);
+        if(!targetMember) return;
+
+        const currentIso = targetMember.paidAt ? targetMember.paidAt.split('T')[0] : new Date().toISOString().split('T')[0];
+
+        const res = await openCustomModal({
+          title: `Set Payment Date — ${targetMember.name}`,
+          bodyHtml: `
+            <div class="field" style="margin-bottom:0;">
+              <label for="customPaidDateInput">Payment Date</label>
+              <input type="date" id="customPaidDateInput" name="paidDate" value="${currentIso}">
+            </div>
+          `,
+          confirmText: "Save Date",
+          cancelText: "Cancel"
+        });
+
+        const selectedDate = typeof res === "string" ? res : (res ? (res.paidDate || res.value || res.customPaidDateInput) : null);
+        if(!selectedDate) return;
+
+        targetMember.paid = true;
+        targetMember.paidAt = new Date(selectedDate + "T12:00:00.000Z").toISOString();
+
+        const wm = workingMembers.find(m => m.id === id);
+        if(wm){
+          wm.paid = true;
+          wm.paidAt = targetMember.paidAt;
+        }
+
+        render();
+        showToast("Saving payment date...", "info");
+        await saveChanges(true);
       });
     });
   }
@@ -1319,6 +1396,96 @@ async function validateToken(token){
   } catch(e) {
     return false;
   }
+}
+/* ---------------- Custom Reusable Modal Dialog System ---------------- */
+function openCustomModal({ title, bodyHtml, confirmText = "Confirm", cancelText = "Cancel", isDanger = false, showCancel = true }){
+  return new Promise((resolve) => {
+    const modal = document.getElementById("customModal");
+    const titleEl = document.getElementById("customModalTitle");
+    const bodyEl = document.getElementById("customModalBody");
+    const closeBtn = document.getElementById("closeCustomModalBtn");
+    const cancelBtn = document.getElementById("customModalCancelBtn");
+    const confirmBtn = document.getElementById("customModalConfirmBtn");
+
+    titleEl.textContent = title || "Notice";
+    bodyEl.innerHTML = bodyHtml || "";
+
+    confirmBtn.textContent = confirmText;
+    confirmBtn.className = `small ${isDanger ? 'danger' : 'primary'}`;
+
+    if(showCancel){
+      cancelBtn.style.display = "inline-block";
+      cancelBtn.textContent = cancelText;
+    } else {
+      cancelBtn.style.display = "none";
+    }
+
+    modal.style.display = "flex";
+
+    const firstInput = bodyEl.querySelector("input, select, textarea");
+    if(firstInput) setTimeout(() => firstInput.focus(), 100);
+
+    function cleanup(result){
+      modal.style.display = "none";
+      closeBtn.removeEventListener("click", onCancel);
+      cancelBtn.removeEventListener("click", onCancel);
+      confirmBtn.removeEventListener("click", onConfirm);
+      modal.removeEventListener("click", onOverlayClick);
+      resolve(result);
+    }
+
+    function onCancel(){ cleanup(null); }
+    function onConfirm(){
+      const inputs = bodyEl.querySelectorAll("input, select, textarea");
+      if(inputs.length > 0){
+        const formData = {};
+        inputs.forEach(inp => {
+          const key = inp.name || inp.id || "value";
+          if(inp.type === "checkbox") formData[key] = inp.checked;
+          else formData[key] = inp.value;
+        });
+        if(inputs.length === 1 && !inputs[0].name && !inputs[0].id){
+          cleanup(inputs[0].value);
+          return;
+        }
+        if(inputs.length === 1){
+          formData.value = inputs[0].value;
+        }
+        cleanup(formData);
+      } else {
+        cleanup(true);
+      }
+    }
+
+    function onOverlayClick(e){
+      if(e.target === modal) onCancel();
+    }
+
+    closeBtn.addEventListener("click", onCancel);
+    cancelBtn.addEventListener("click", onCancel);
+    confirmBtn.addEventListener("click", onConfirm);
+    modal.addEventListener("click", onOverlayClick);
+  });
+}
+
+function showCustomAlert(title, message){
+  return openCustomModal({
+    title,
+    bodyHtml: `<p class="modal-desc" style="margin:0;">${escapeHtml(message)}</p>`,
+    confirmText: "OK",
+    showCancel: false
+  });
+}
+
+function showCustomConfirm(title, message, confirmText="Confirm", isDanger=false){
+  return openCustomModal({
+    title,
+    bodyHtml: `<p class="modal-desc" style="margin:0;">${escapeHtml(message)}</p>`,
+    confirmText,
+    cancelText: "Cancel",
+    isDanger,
+    showCancel: true
+  });
 }
 
 function showModalError(msg){
@@ -1469,25 +1636,41 @@ function renderRegistryPanel(){
   `;
 
   document.getElementById("newRegMemberBtn").addEventListener("click", async () => {
-    const name = prompt("Enter new member full name:");
-    if(!name || !name.trim()) return;
+    const res = await openCustomModal({
+      title: "Register New Member",
+      bodyHtml: `
+        <div class="field">
+          <label for="regMemberNameInput">Full Name</label>
+          <input type="text" id="regMemberNameInput" name="name" placeholder="e.g. John Doe" autocomplete="off" />
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;margin-top:12px;">
+          <input type="checkbox" id="regMemberAddToCycleInput" name="addToCycle" checked style="width:auto;cursor:pointer;" />
+          <label for="regMemberAddToCycleInput" style="font-size:12.5px;color:var(--ink);cursor:pointer;margin:0;">Add to current active billing cycle</label>
+        </div>
+      `,
+      confirmText: "Register Member",
+      cancelText: "Cancel"
+    });
+
+    if(!res || !res.name || !res.name.trim()) return;
+    const name = res.name.trim();
 
     const newId = `m-${Date.now().toString(36)}`;
     const newRegMember = {
       id: newId,
-      name: name.trim(),
+      name: name,
       active: true,
       joinedAt: new Date().toISOString()
     };
     if(!currentData.registeredMembers) currentData.registeredMembers = [];
     currentData.registeredMembers.push(newRegMember);
 
-    if(confirm(`Also add ${name.trim()} to the current active billing cycle?`)){
+    if(res.addToCycle){
       if(!currentData.members) currentData.members = [];
       const totalCost = Number(currentData.plan.totalCost || 0);
       currentData.members.push({
         id: newId,
-        name: name.trim(),
+        name: name,
         share: 0,
         paid: false,
         paidAt: null
@@ -1524,7 +1707,8 @@ function renderRegistryPanel(){
       const regId = e.currentTarget.dataset.deleteRegId;
       const target = currentData.registeredMembers.find(m => m.id === regId);
       if(target){
-        if(!confirm(`Permanently delete member "${target.name}"?\n\nThis will remove them from the master registry and current cycle.`)) return;
+        const ok = await showCustomConfirm("Delete Member", `Permanently delete member "${target.name}"? This will remove them from the master registry and current active cycle.`, "Delete Member", true);
+        if(!ok) return;
 
         currentData.registeredMembers = currentData.registeredMembers.filter(m => m.id !== regId);
         currentData.members = (currentData.members || []).filter(m => m.id !== regId);
@@ -1547,32 +1731,43 @@ function renderRegistryPanel(){
 
 /* ---------------- Admin: Create New Billing Cycle ---------------- */
 els.addPastCycleBtn.addEventListener("click", async () => {
-  const typeChoice = prompt(
-    "Select Cycle Type to create:\n\n" +
-    "1. Active Cycle (Green Badge)\n" +
-    "2. Future Advance Cycle (Blue Badge)\n" +
-    "3. Past Archived Cycle (Gold Badge)\n\n" +
-    "Enter choice (1, 2, or 3):",
-    "1"
-  );
-  if(!typeChoice) return;
+  const currentBDate = (currentData.plan && currentData.plan.billingDate) ? currentData.plan.billingDate : "2026-08-26";
+  const defaultLabel = getCycleDurationInfo(currentBDate).label;
 
-  const rawChoice = typeChoice.trim();
-  let cycleStatus = "active";
-  if(rawChoice === "2") cycleStatus = "future";
-  else if(rawChoice === "3") cycleStatus = "archived";
+  const res = await openCustomModal({
+    title: "Create New Billing Cycle",
+    bodyHtml: `
+      <div class="field">
+        <label for="newCycleTypeSelect">Cycle Type & Tag</label>
+        <select id="newCycleTypeSelect" name="cycleStatus">
+          <option value="active">Active Cycle (Green Badge)</option>
+          <option value="future">Future Advance Cycle (Blue Badge)</option>
+          <option value="archived">Past Archived Cycle (Gold Badge)</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="newCycleBDateInput">Billing Date (26th of month)</label>
+        <input type="date" id="newCycleBDateInput" name="bDate" value="${currentBDate}">
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label for="newCycleLabelInput">Cycle Description / Label</label>
+        <input type="text" id="newCycleLabelInput" name="label" value="${escapeAttr(defaultLabel)}" placeholder="e.g. Aug 27 – Sep 26 2026">
+      </div>
+    `,
+    confirmText: "Create Cycle",
+    cancelText: "Cancel"
+  });
 
-  const defaultBDate = cycleStatus === "future" ? "2026-09-26" : cycleStatus === "archived" ? "2026-07-26" : "2026-08-26";
-  const bDateInput = prompt("Enter billing date for this cycle (YYYY-MM-26):", defaultBDate);
-  if(!bDateInput) return;
+  if(!res || !res.bDate) return;
 
-  const parts = bDateInput.trim().split('-');
+  const cycleStatus = res.cycleStatus || "active";
+  const parts = res.bDate.trim().split('-');
   let yr = Number(parts[0] || 2026);
   let mo = Number(parts[1] || 8);
   const fixedBDate = `${yr}-${String(mo).padStart(2, '0')}-26`;
   const durationInfo = getCycleDurationInfo(fixedBDate);
 
-  const customLabel = prompt("Enter cycle label / range description:", durationInfo.label) || durationInfo.label;
+  const customLabel = res.label && res.label.trim() ? res.label.trim() : durationInfo.label;
 
   const activeReg = (currentData.registeredMembers || []).filter(m => m.active);
   const n = activeReg.length || 1;
@@ -1664,20 +1859,31 @@ function renderEditPanel(){
   `;
   renderMemberEditList();
 
-  document.getElementById("addRegisteredMemberToCycleBtn").addEventListener("click", () => {
+  document.getElementById("addRegisteredMemberToCycleBtn").addEventListener("click", async () => {
     const registered = currentData.registeredMembers || [];
     const available = registered.filter(rm => !workingMembers.some(wm => wm.id === rm.id));
 
     if(available.length === 0){
-      alert("All registered members are already included in this cycle, or no new registered members exist. Go to 'Member Registry' to register a new member.");
+      await showCustomAlert("No Available Members", "All registered members are already included in this cycle, or no new registered members exist. Go to 'Member Registry' to register a new member.");
       return;
     }
 
-    const optionsText = available.map((m, i) => `${i + 1}. ${m.name} (${m.id})`).join('\n');
-    const choice = prompt(`Select registered member to add:\n\n${optionsText}\n\nEnter number (1-${available.length}):`);
-    const idx = Number(choice) - 1;
-    if(idx >= 0 && idx < available.length){
-      const selected = available[idx];
+    const optionsHtml = available.map(m => `<option value="${m.id}">${escapeHtml(m.name)} (${m.id})</option>`).join('');
+    const res = await openCustomModal({
+      title: "Add Member to Cycle",
+      bodyHtml: `
+        <div class="field" style="margin-bottom:0;">
+          <label for="selectRegisteredMemberInput">Select Registered Member</label>
+          <select id="selectRegisteredMemberInput" name="memberId">${optionsHtml}</select>
+        </div>
+      `,
+      confirmText: "Add Member",
+      cancelText: "Cancel"
+    });
+
+    if(!res || !res.memberId) return;
+    const selected = available.find(m => m.id === res.memberId);
+    if(selected){
       workingMembers.push({
         id: selected.id,
         name: selected.name,
@@ -1700,7 +1906,8 @@ function renderEditPanel(){
 
   if(isArchive && document.getElementById("deleteCycleBtn")){
     document.getElementById("deleteCycleBtn").addEventListener("click", async () => {
-      if(!confirm("Are you sure you want to delete this archived cycle?")) return;
+      const ok = await showCustomConfirm("Delete Archived Cycle", "Are you sure you want to delete this archived cycle? This action cannot be undone.", "Delete Cycle", true);
+      if(!ok) return;
       currentData.history = currentData.history.filter(h => h.id !== selectedCycleId);
       selectedCycleId = "current";
       isEditing = false;
@@ -1726,16 +1933,18 @@ function renderMemberEditList(){
   workingMembers.forEach((m, idx) => {
     const row = document.createElement("div");
     row.className = "member-edit-row";
+    const dateVal = m.paidAt ? m.paidAt.split('T')[0] : '';
     row.innerHTML = `
       <div>
         <strong style="font-size:13px;display:block;">${escapeHtml(m.name)}</strong>
         <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--ink-dim);">${m.id}</span>
       </div>
-      <input data-field="share" data-idx="${idx}" type="number" step="0.01" value="${m.share || 0}" placeholder="Amount">
-      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);">
-        <input type="checkbox" data-field="paid" data-idx="${idx}" ${m.paid ? "checked" : ""} style="width:auto;">
+      <input data-field="share" data-idx="${idx}" type="number" step="0.01" value="${m.share || 0}" placeholder="Amount" title="Share Amount">
+      <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--ink-dim);margin:0;">
+        <input type="checkbox" data-field="paid" data-idx="${idx}" ${m.paid ? "checked" : ""} style="width:auto;cursor:pointer;">
         Paid
       </label>
+      <input data-field="paidAt" data-idx="${idx}" type="date" value="${dateVal}" ${!m.paid ? 'disabled' : ''} title="Paid Date">
       <button class="small ghost" data-remove="${idx}">Remove</button>
     `;
     list.appendChild(row);
@@ -1747,7 +1956,18 @@ function renderMemberEditList(){
       const field = e.target.dataset.field;
       if(field === "paid"){
         workingMembers[idx].paid = e.target.checked;
-        workingMembers[idx].paidAt = e.target.checked ? (workingMembers[idx].paidAt || new Date().toISOString()) : null;
+        if(e.target.checked && !workingMembers[idx].paidAt){
+          workingMembers[idx].paidAt = new Date().toISOString();
+        } else if(!e.target.checked){
+          workingMembers[idx].paidAt = null;
+        }
+        renderMemberEditList();
+      } else if(field === "paidAt"){
+        if(e.target.value){
+          workingMembers[idx].paidAt = new Date(e.target.value + "T12:00:00.000Z").toISOString();
+        } else {
+          workingMembers[idx].paidAt = null;
+        }
       } else if(field === "share"){
         workingMembers[idx].share = Number(e.target.value);
       }
