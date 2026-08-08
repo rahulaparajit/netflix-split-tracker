@@ -1017,7 +1017,7 @@ function escapeAttr(str){ return (str || "").replace(/"/g, "&quot;"); }
 /* ---------------- Admin: login / logout ---------------- */
 els.loginBtn.addEventListener("click", () => {
   const token = prompt(
-    "Paste your GitHub personal access token.\n\nIt is stored strictly in your browser's localStorage to write updates directly to data.json via GitHub API."
+    "Paste your GitHub personal access token."
   );
   if(token){
     setToken(token.trim());
