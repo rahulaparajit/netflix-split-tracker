@@ -6,23 +6,8 @@
     "billingDate": "2026-07-26",
     "notes": ""
   },
-  "members": [
-    {
-      "id": "m3",
-      "name": "Member 3",
-      "share": 649,
-      "paid": true,
-      "paidAt": "2026-07-05T09:00:00.000Z"
-    }
-  ],
+  "members": [],
   "history": [],
-  "lastUpdated": "2026-08-08T13:09:50.840Z",
-  "registeredMembers": [
-    {
-      "id": "m3",
-      "name": "Member 3",
-      "active": true,
-      "joinedAt": "2026-08-08T12:57:49.680Z"
-    }
-  ]
+  "lastUpdated": "2026-08-08T13:09:53.937Z",
+  "registeredMembers": []
 }
