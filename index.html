@@ -169,15 +169,42 @@
     display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px;
   }
 
-  .archive-badge{
+  .cycle-status-badge{
     display:inline-block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;
+    padding:4px 10px;
+    border-radius:4px;
+    letter-spacing:.06em;
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  .cycle-status-badge.active{
+    background:rgba(46,125,50,.18);
+    color:#2e7d32;
+    border:1px solid #388e3c;
+  }
+  [data-theme="dark"] .cycle-status-badge.active,
+  :root:not([data-theme="light"]) .cycle-status-badge.active{
+    background:rgba(126,201,143,.2);
+    color:#7ec98f;
+    border:1px solid #7ec98f;
+  }
+  .cycle-status-badge.future{
+    background:rgba(21,101,192,.18);
+    color:#1565c0;
+    border:1px solid #1e88e5;
+  }
+  [data-theme="dark"] .cycle-status-badge.future,
+  :root:not([data-theme="light"]) .cycle-status-badge.future{
+    background:rgba(126,201,216,.2);
+    color:#7ec9d8;
+    border:1px solid #7ec9d8;
+  }
+  .cycle-status-badge.archived{
     background:var(--gold-soft);
     color:var(--gold);
-    font-family:'JetBrains Mono',monospace;
-    font-size:11px;
-    padding:3px 8px;
-    border-radius:4px;
-    letter-spacing:.05em;
+    border:1px solid var(--gold);
   }
 
   /* ---- Section headers ---- */
@@ -472,7 +499,7 @@
   <div class="stub">
     <div class="stub-eyebrow">
       <span>Shared subscription · updated <span id="lastUpdated">—</span></span>
-      <span id="archiveBadge" class="archive-badge" style="display:none;">ARCHIVED CYCLE</span>
+      <span id="cycleStatusBadge" class="cycle-status-badge active">ACTIVE CYCLE</span>
     </div>
     <div class="stub-title" id="planName">Loading…</div>
     <div class="stub-meta" id="planMeta"></div>
@@ -536,7 +563,7 @@ let workingMembers = [];
 const els = {
   cycleSelect: document.getElementById("cycleSelect"),
   lastUpdated: document.getElementById("lastUpdated"),
-  archiveBadge: document.getElementById("archiveBadge"),
+  cycleStatusBadge: document.getElementById("cycleStatusBadge"),
   planName: document.getElementById("planName"),
   planMeta: document.getElementById("planMeta"),
   planSubMeta: document.getElementById("planSubMeta"),
@@ -713,9 +740,12 @@ function populateCycleSelector(){
   els.cycleSelect.innerHTML = "";
 
   const currInfo = getCycleDurationInfo(currentData.plan.billingDate);
+  const currStatus = (currentData.plan && currentData.plan.status) ? currentData.plan.status : "active";
+  const currTag = currStatus === "active" ? "[ACTIVE]" : currStatus === "future" ? "[FUTURE]" : "[ARCHIVED]";
+
   const currOpt = document.createElement("option");
   currOpt.value = "current";
-  currOpt.textContent = `Current Cycle (${currInfo.label})`;
+  currOpt.textContent = `Current Cycle (${currInfo.label}) ${currTag}`;
   els.cycleSelect.appendChild(currOpt);
 
   if(currentData && currentData.history){
@@ -723,7 +753,9 @@ function populateCycleSelector(){
       const opt = document.createElement("option");
       opt.value = h.id;
       const hInfo = getCycleDurationInfo(h.billingDate);
-      opt.textContent = `${h.cycleLabel || hInfo.label} (Archived)`;
+      const hStatus = h.status || "archived";
+      const hTag = hStatus === "active" ? "[ACTIVE]" : hStatus === "future" ? "[FUTURE]" : "[ARCHIVED]";
+      opt.textContent = `${h.cycleLabel || hInfo.label} ${hTag}`;
       els.cycleSelect.appendChild(opt);
     });
   }
@@ -742,12 +774,13 @@ els.cycleSelect.addEventListener("change", (e) => {
 });
 
 function getActiveCycleData(){
-  if(!currentData) return { plan:{}, members:[] };
+  if(!currentData) return { plan:{}, members:[], status:'active' };
   if(selectedCycleId === "current"){
     return {
       plan: currentData.plan,
       members: currentData.members || [],
-      isArchive: false
+      isArchive: false,
+      status: (currentData.plan && currentData.plan.status) ? currentData.plan.status : 'active'
     };
   }
   const hist = (currentData.history || []).find(h => h.id === selectedCycleId);
@@ -763,15 +796,16 @@ function getActiveCycleData(){
       members: hist.members || [],
       isArchive: true,
       cycleLabel: hist.cycleLabel,
+      status: hist.status || 'archived',
       histObject: hist
     };
   }
-  return { plan: currentData.plan, members: currentData.members || [], isArchive: false };
+  return { plan: currentData.plan, members: currentData.members || [], isArchive: false, status: 'active' };
 }
 
 function render(){
   const cycleData = getActiveCycleData();
-  const {plan, members, isArchive, cycleLabel} = cycleData;
+  const {plan, members, isArchive, cycleLabel, status} = cycleData;
 
   const durationInfo = getCycleDurationInfo(plan.billingDate);
 
@@ -782,9 +816,14 @@ function render(){
   els.planCurrency.textContent = "total / cycle";
   els.lastUpdated.textContent = currentData.lastUpdated ? new Date(currentData.lastUpdated).toLocaleDateString() : "never";
 
-  els.archiveBadge.style.display = isArchive ? "inline-block" : "none";
-  if(isArchive){
-    els.archiveBadge.textContent = `ARCHIVED · ${cycleLabel || durationInfo.shortLabel}`;
+  const activeStatus = status || (isArchive ? 'archived' : 'active');
+  els.cycleStatusBadge.className = `cycle-status-badge ${activeStatus}`;
+  if(activeStatus === 'active'){
+    els.cycleStatusBadge.textContent = 'ACTIVE CYCLE';
+  } else if(activeStatus === 'future'){
+    els.cycleStatusBadge.textContent = 'FUTURE CYCLE (ADVANCE)';
+  } else {
+    els.cycleStatusBadge.textContent = `ARCHIVED · ${cycleLabel || durationInfo.shortLabel}`;
   }
 
   renderSplitBar(plan, members);
@@ -1229,14 +1268,18 @@ els.startCycleBtn.addEventListener("click", async () => {
   render();
 });
 
-/* ---------------- Admin: Create Custom Past Cycle ---------------- */
+/* ---------------- Admin: Create Custom Past/Future Cycle ---------------- */
 els.addPastCycleBtn.addEventListener("click", async () => {
-  const bDateInput = prompt("Enter billing date for this cycle (YYYY-MM-26):", "2026-07-26");
+  const typeChoice = prompt("Select cycle type:\n1. Future Advance Cycle (Blue Badge)\n2. Past Archived Cycle (Gold Badge)\n\nEnter 1 or 2:", "1");
+  if(!typeChoice) return;
+  const cycleStatus = typeChoice.trim() === "1" ? "future" : "archived";
+
+  const bDateInput = prompt("Enter billing date for this cycle (YYYY-MM-26):", cycleStatus === "future" ? "2026-09-26" : "2026-07-26");
   if(!bDateInput) return;
 
   const parts = bDateInput.trim().split('-');
   let yr = Number(parts[0] || 2026);
-  let mo = Number(parts[1] || 7);
+  let mo = Number(parts[1] || (cycleStatus === "future" ? 9 : 7));
   const fixedBDate = `${yr}-${String(mo).padStart(2, '0')}-26`;
   const durationInfo = getCycleDurationInfo(fixedBDate);
 
@@ -1250,6 +1293,7 @@ els.addPastCycleBtn.addEventListener("click", async () => {
     id: `h-${Date.now()}`,
     cycleLabel: customLabel,
     billingDate: fixedBDate,
+    status: cycleStatus,
     totalCost: currentData.plan.totalCost || 649,
     currency: currentData.plan.currency || "₹",
     archivedAt: new Date().toISOString(),
@@ -1304,6 +1348,14 @@ function renderEditPanel(){
       <div class="field">
         <label>Billing Date (26th of month)</label>
         <input id="f_date" type="date" value="${plan.billingDate || ""}">
+      </div>
+      <div class="field" style="grid-column:1/-1;">
+        <label>Cycle Status Tag</label>
+        <select id="f_status">
+          <option value="active" ${(activeData.status || (isArchive ? 'archived' : 'active')) === 'active' ? 'selected' : ''}>ACTIVE CYCLE (Green Badge)</option>
+          <option value="future" ${(activeData.status || (isArchive ? 'archived' : 'active')) === 'future' ? 'selected' : ''}>FUTURE CYCLE / ADVANCE (Blue Badge)</option>
+          <option value="archived" ${(activeData.status || (isArchive ? 'archived' : 'active')) === 'archived' ? 'selected' : ''}>ARCHIVED CYCLE (Gold Badge)</option>
+        </select>
       </div>
     </div>
 
@@ -1434,6 +1486,9 @@ async function saveChanges(silent=false){
       currentData.plan.name = document.getElementById("f_name").value;
       currentData.plan.currency = document.getElementById("f_currency").value;
       currentData.plan.totalCost = Number(document.getElementById("f_total").value);
+      if(document.getElementById("f_status")){
+        currentData.plan.status = document.getElementById("f_status").value;
+      }
       const inputDate = document.getElementById("f_date").value;
       if(inputDate){
         const parts = inputDate.split('-');
@@ -1447,6 +1502,9 @@ async function saveChanges(silent=false){
       hist.cycleLabel = document.getElementById("f_name").value;
       hist.currency = document.getElementById("f_currency").value;
       hist.totalCost = Number(document.getElementById("f_total").value);
+      if(document.getElementById("f_status")){
+        hist.status = document.getElementById("f_status").value;
+      }
       const inputDate = document.getElementById("f_date").value;
       if(inputDate){
         const parts = inputDate.split('-');
