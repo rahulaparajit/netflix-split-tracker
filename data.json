@@ -104,8 +104,8 @@
           "id": "m-mskejfg8",
           "name": "Ameya.H",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-10T12:13:31.087Z"
         },
         {
           "id": "m-mskejp19",
@@ -532,5 +532,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-10T12:13:27.403Z"
+  "lastUpdated": "2026-08-10T12:13:31.094Z"
 }
