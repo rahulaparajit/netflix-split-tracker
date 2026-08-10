@@ -65,8 +65,8 @@
       "id": "m-mskejp19",
       "name": "Nikhil",
       "share": 129.8,
-      "paid": false,
-      "paidAt": null
+      "paid": true,
+      "paidAt": "2026-08-10T12:02:17.429Z"
     },
     {
       "id": "m-mskek2fh",
@@ -348,5 +348,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-10T11:30:37.450Z"
+  "lastUpdated": "2026-08-10T12:02:17.459Z"
 }
