@@ -1,9 +1,9 @@
 {
   "plan": {
-    "name": "Aug",
+    "name": "27th Jul - 26th Aug 2026",
     "totalCost": 649,
     "currency": "₹",
-    "billingDate": "2026-08-26",
+    "billingDate": "2026-07-26",
     "notes": "Prepaid plan · Billed on 26th of every month",
     "status": "archived"
   },
@@ -532,5 +532,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-27T02:30:46.165Z"
+  "lastUpdated": "2026-08-27T02:31:58.912Z"
 }
