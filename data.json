@@ -256,8 +256,8 @@
           "id": "m-mskek2fh",
           "name": "Ameya.Z",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-29T07:46:26.519Z"
         }
       ]
     },
@@ -532,5 +532,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-29T07:45:03.143Z"
+  "lastUpdated": "2026-08-29T07:46:26.528Z"
 }
