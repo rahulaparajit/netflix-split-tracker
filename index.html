@@ -998,6 +998,20 @@ function showToast(msg, type="info", duration=3000){
   }
 }
 
+function getSelectedCycleMembers(){
+  if(!currentData) return [];
+  if(selectedCycleId === "current"){
+    if(!currentData.members) currentData.members = [];
+    return currentData.members;
+  }
+  const hist = (currentData.history || []).find(h => h.id === selectedCycleId);
+  if(hist){
+    if(!hist.members) hist.members = [];
+    return hist.members;
+  }
+  return currentData.members || [];
+}
+
 function getActiveCycleId(){
   if(!currentData) return "current";
   if(currentData.plan && currentData.plan.status === "active"){
@@ -1377,11 +1391,18 @@ function renderLedger(members, currency, isArchive){
     els.memberLedger.querySelectorAll("[data-toggle-id]").forEach(btn => {
       btn.addEventListener("click", async (e) => {
         const id = e.currentTarget.dataset.toggleId;
-        let targetMembers = isArchive ? getActiveCycleData().members : currentData.members;
+        const targetMembers = getSelectedCycleMembers();
         const targetMember = targetMembers.find(m => m.id === id);
         if(targetMember){
           targetMember.paid = !targetMember.paid;
           targetMember.paidAt = targetMember.paid ? (targetMember.paidAt || new Date().toISOString()) : null;
+
+          const wm = (workingMembers || []).find(m => m.id === id);
+          if(wm){
+            wm.paid = targetMember.paid;
+            wm.paidAt = targetMember.paidAt;
+          }
+
           render();
           showToast("Saving status...", "info");
           await saveChanges(true);
@@ -1393,7 +1414,7 @@ function renderLedger(members, currency, isArchive){
       btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         const id = e.currentTarget.dataset.setDateId;
-        let targetMembers = isArchive ? getActiveCycleData().members : currentData.members;
+        const targetMembers = getSelectedCycleMembers();
         const targetMember = targetMembers.find(m => m.id === id);
         if(!targetMember) return;
 
@@ -1417,7 +1438,7 @@ function renderLedger(members, currency, isArchive){
         targetMember.paid = true;
         targetMember.paidAt = new Date(selectedDate + "T12:00:00.000Z").toISOString();
 
-        const wm = workingMembers.find(m => m.id === id);
+        const wm = (workingMembers || []).find(m => m.id === id);
         if(wm){
           wm.paid = true;
           wm.paidAt = targetMember.paidAt;
