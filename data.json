@@ -1,11 +1,11 @@
 {
   "plan": {
-    "name": "Netflix Premium",
+    "name": "27th Jul - 26th Aug 2026",
     "totalCost": 649,
     "currency": "₹",
-    "billingDate": "2026-08-26",
+    "billingDate": "2026-07-26",
     "notes": "Prepaid plan · Billed on 26th of every month",
-    "status": "active"
+    "status": "archived"
   },
   "registeredMembers": [
     {
@@ -51,32 +51,216 @@
       "id": "m-mskeizj5",
       "name": "Abhijeet",
       "share": 129.8,
-      "paid": false,
-      "paidAt": null
+      "paid": true,
+      "paidAt": "2026-06-27T12:00:00.000Z"
     },
     {
       "id": "m-mskejfg8",
       "name": "Ameya.H",
       "share": 129.8,
-      "paid": false,
-      "paidAt": null
+      "paid": true,
+      "paidAt": "2026-08-10T12:10:32.939Z"
     },
     {
       "id": "m-mskejp19",
       "name": "Nikhil",
       "share": 129.8,
-      "paid": false,
-      "paidAt": null
+      "paid": true,
+      "paidAt": "2026-08-10T12:02:17.429Z"
     },
     {
       "id": "m-mskek2fh",
       "name": "Ameya.Z",
       "share": 129.8,
-      "paid": false,
-      "paidAt": null
+      "paid": true,
+      "paidAt": "2026-08-10T11:30:19.889Z"
     }
   ],
   "history": [
+    {
+      "id": "h-1786363953261",
+      "cycleLabel": "27th Nov – 26th Dec 2026",
+      "billingDate": "2026-11-26",
+      "status": "future",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-10T12:12:33.261Z",
+      "members": [
+        {
+          "id": "m-mskei0ih",
+          "name": "Rahul",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskeizj5",
+          "name": "Abhijeet",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejfg8",
+          "name": "Ameya.H",
+          "share": 129.8,
+          "paid": true,
+          "paidAt": "2026-08-10T12:13:31.087Z"
+        },
+        {
+          "id": "m-mskejp19",
+          "name": "Nikhil",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskek2fh",
+          "name": "Ameya.Z",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        }
+      ]
+    },
+    {
+      "id": "h-1786363928819",
+      "cycleLabel": "27th Oct – 26th Nov 2026",
+      "billingDate": "2026-10-26",
+      "status": "future",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-10T12:12:08.819Z",
+      "members": [
+        {
+          "id": "m-mskei0ih",
+          "name": "Rahul",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskeizj5",
+          "name": "Abhijeet",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejfg8",
+          "name": "Ameya.H",
+          "share": 129.8,
+          "paid": true,
+          "paidAt": "2026-08-10T12:13:27.399Z"
+        },
+        {
+          "id": "m-mskejp19",
+          "name": "Nikhil",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskek2fh",
+          "name": "Ameya.Z",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        }
+      ]
+    },
+    {
+      "id": "h-1786363671750",
+      "cycleLabel": "27th Sept – 26th Oct 2026",
+      "billingDate": "2026-09-26",
+      "status": "future",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-10T12:07:51.750Z",
+      "members": [
+        {
+          "id": "m-mskei0ih",
+          "name": "Rahul",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskeizj5",
+          "name": "Abhijeet",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejfg8",
+          "name": "Ameya.H",
+          "share": 129.8,
+          "paid": true,
+          "paidAt": "2026-08-10T12:10:56.792Z"
+        },
+        {
+          "id": "m-mskejp19",
+          "name": "Nikhil",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskek2fh",
+          "name": "Ameya.Z",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        }
+      ]
+    },
+    {
+      "id": "h-1786363592600",
+      "cycleLabel": "27th Aug – 26th Sept 2026",
+      "billingDate": "2026-08-26",
+      "status": "active",
+      "totalCost": 649,
+      "currency": "₹",
+      "archivedAt": "2026-08-10T12:06:32.600Z",
+      "members": [
+        {
+          "id": "m-mskei0ih",
+          "name": "Rahul",
+          "share": 129.8,
+          "paid": true,
+          "paidAt": "2026-08-27T02:28:16.578Z"
+        },
+        {
+          "id": "m-mskeizj5",
+          "name": "Abhijeet",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskejfg8",
+          "name": "Ameya.H",
+          "share": 129.8,
+          "paid": true,
+          "paidAt": "2026-08-10T12:10:49.224Z"
+        },
+        {
+          "id": "m-mskejp19",
+          "name": "Nikhil",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        },
+        {
+          "id": "m-mskek2fh",
+          "name": "Ameya.Z",
+          "share": 129.8,
+          "paid": false,
+          "paidAt": null
+        }
+      ]
+    },
     {
       "id": "h-1786196211229",
       "cycleLabel": "27th Jun – 26th Jul 2026",
@@ -103,8 +287,8 @@
           "id": "m-mskejfg8",
           "name": "Ameya.H",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-10T12:10:25.459Z"
         },
         {
           "id": "m-mskejp19",
@@ -117,8 +301,8 @@
           "id": "m-mskek2fh",
           "name": "Ameya.Z",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-10T11:30:30.848Z"
         }
       ]
     },
@@ -162,8 +346,8 @@
           "id": "m-mskek2fh",
           "name": "Ameya.Z",
           "share": 129.8,
-          "paid": false,
-          "paidAt": null
+          "paid": true,
+          "paidAt": "2026-08-10T11:30:37.446Z"
         }
       ]
     },
@@ -348,5 +532,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-08-08T17:40:48.021Z"
+  "lastUpdated": "2026-08-27T02:31:58.912Z"
 }
