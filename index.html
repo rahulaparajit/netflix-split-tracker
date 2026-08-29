@@ -1010,6 +1010,44 @@ function getActiveCycleId(){
   return "current";
 }
 
+function deleteCycleById(cId){
+  const isCurrent = cId === "current";
+  if(isCurrent){
+    if(currentData.history && currentData.history.length > 0){
+      const nextIdx = currentData.history.findIndex(h => h.status === 'active');
+      const idx = nextIdx >= 0 ? nextIdx : 0;
+      const nextCycle = currentData.history[idx];
+      currentData.history.splice(idx, 1);
+      
+      currentData.plan = {
+        name: nextCycle.cycleLabel || "Netflix Premium",
+        totalCost: nextCycle.totalCost || 649,
+        currency: nextCycle.currency || "₹",
+        billingDate: nextCycle.billingDate || "2026-08-26",
+        notes: currentData.plan.notes || "Prepaid plan · Billed on 26th of every month",
+        status: nextCycle.status || "active"
+      };
+      currentData.members = JSON.parse(JSON.stringify(nextCycle.members || []));
+      if(nextCycle.status === "active"){
+        ensureSingleActiveCycle("current");
+      }
+    } else {
+      currentData.plan = {
+        name: "Netflix Premium",
+        totalCost: 649,
+        currency: "₹",
+        billingDate: "2026-08-26",
+        notes: "Prepaid plan · Billed on 26th of every month",
+        status: "active"
+      };
+      currentData.members = [];
+    }
+  } else {
+    currentData.history = (currentData.history || []).filter(h => h.id !== cId);
+  }
+  selectedCycleId = getActiveCycleId();
+}
+
 function ensureSingleActiveCycle(targetActiveId){
   if(!currentData) return;
   if(targetActiveId !== "current"){
@@ -1121,7 +1159,10 @@ function populateCycleSelector(){
 
   const currOpt = document.createElement("option");
   currOpt.value = "current";
-  currOpt.textContent = `Current Cycle (${currInfo.label}) ${currTag}`;
+  const planLabel = (currentData.plan.name && currentData.plan.name !== "Netflix Premium" && currentData.plan.name !== "Untitled plan")
+    ? currentData.plan.name
+    : `Current Cycle (${currInfo.label})`;
+  currOpt.textContent = `${planLabel} ${currTag}`;
   els.cycleSelect.appendChild(currOpt);
 
   if(currentData && currentData.history){
@@ -1157,25 +1198,27 @@ els.cycleSelect.addEventListener("change", (e) => {
 function getActiveCycleData(){
   if(!currentData) return { plan:{}, members:[], status:'active' };
   if(selectedCycleId === "current"){
+    const p = currentData.plan || {};
     return {
-      plan: currentData.plan,
+      plan: p,
       members: currentData.members || [],
-      isArchive: false,
-      status: (currentData.plan && currentData.plan.status) ? currentData.plan.status : 'active'
+      isArchive: p.status === 'archived',
+      cycleLabel: p.name || '',
+      status: p.status || 'active'
     };
   }
   const hist = (currentData.history || []).find(h => h.id === selectedCycleId);
   if(hist){
     return {
       plan: {
-        name: currentData.plan.name,
+        name: hist.cycleLabel || "Netflix Premium",
         totalCost: hist.totalCost || currentData.plan.totalCost,
         currency: hist.currency || currentData.plan.currency,
         billingDate: hist.billingDate,
         notes: currentData.plan.notes
       },
       members: hist.members || [],
-      isArchive: true,
+      isArchive: (hist.status || 'archived') === 'archived',
       cycleLabel: hist.cycleLabel,
       status: hist.status || 'archived',
       histObject: hist
@@ -1769,7 +1812,7 @@ function renderCycleManagerPanel(){
                 <td style="text-align:right;white-space:nowrap;">
                   <div style="display:flex;gap:6px;justify-content:flex-end;align-items:center;">
                     <button class="small primary" data-modify-mgr-id="${c.id}">Modify</button>
-                    ${!c.isCurrent ? `<button class="small danger" data-delete-mgr-id="${c.id}">Delete</button>` : ''}
+                    <button class="small danger" data-delete-mgr-id="${c.id}">Delete</button>
                   </div>
                 </td>
               </tr>
@@ -1862,6 +1905,7 @@ function renderCycleManagerPanel(){
 
       if(newStatus === "active"){
         ensureSingleActiveCycle(cId);
+        selectedCycleId = cId;
       }
 
       showToast("Cycle updated successfully", "ok");
@@ -1875,16 +1919,14 @@ function renderCycleManagerPanel(){
   els.cycleManagerPanel.querySelectorAll("[data-delete-mgr-id]").forEach(btn => {
     btn.addEventListener("click", async (e) => {
       const cId = e.currentTarget.dataset.deleteMgrId;
-      const hist = (currentData.history || []).find(h => h.id === cId);
-      const titleText = hist ? (hist.cycleLabel || hist.name || cId) : cId;
+      const isCurrent = cId === "current";
+      const hist = !isCurrent ? (currentData.history || []).find(h => h.id === cId) : null;
+      const titleText = isCurrent ? (currentData.plan.name || "Current Plan") : (hist ? (hist.cycleLabel || hist.name || cId) : cId);
 
       const ok = await showCustomConfirm("Delete Cycle", `Permanently delete cycle "${titleText}"? This action cannot be undone.`, "Delete Cycle", true);
       if(!ok) return;
 
-      currentData.history = (currentData.history || []).filter(h => h.id !== cId);
-      if(selectedCycleId === cId){
-        selectedCycleId = getActiveCycleId();
-      }
+      deleteCycleById(cId);
 
       showToast("Cycle deleted", "info");
       await saveChanges(false);
@@ -2137,7 +2179,7 @@ function renderEditPanel(){
   const {plan, members, isArchive, cycleLabel} = activeData;
   workingMembers = JSON.parse(JSON.stringify(members || []));
 
-  let deleteBtnHtml = isArchive ? `<button id="deleteCycleBtn" class="danger small">Delete Cycle</button>` : '';
+  let deleteBtnHtml = (currentData.history && currentData.history.length > 0) ? `<button id="deleteCycleBtn" class="danger small">Delete Cycle</button>` : '';
 
   els.editPanel.innerHTML = `
     <div class="grid-2">
@@ -2227,12 +2269,13 @@ function renderEditPanel(){
     renderMemberEditList();
   });
 
-  if(isArchive && document.getElementById("deleteCycleBtn")){
+  if(document.getElementById("deleteCycleBtn")){
     document.getElementById("deleteCycleBtn").addEventListener("click", async () => {
-      const ok = await showCustomConfirm("Delete Archived Cycle", "Are you sure you want to delete this archived cycle? This action cannot be undone.", "Delete Cycle", true);
+      const activeData = getActiveCycleData();
+      const titleText = activeData.cycleLabel || activeData.plan.name || "Cycle";
+      const ok = await showCustomConfirm("Delete Cycle", `Are you sure you want to delete "${titleText}"? This action cannot be undone.`, "Delete Cycle", true);
       if(!ok) return;
-      currentData.history = currentData.history.filter(h => h.id !== selectedCycleId);
-      selectedCycleId = getActiveCycleId();
+      deleteCycleById(selectedCycleId);
       isEditing = false;
       els.editPanel.style.display = "none";
       showToast("Deleting cycle...", "info");
