@@ -173,7 +173,7 @@
       "id": "h-1786363671750",
       "cycleLabel": "27th Sept – 26th Oct 2026",
       "billingDate": "2026-09-26",
-      "status": "future",
+      "status": "active",
       "totalCost": 649,
       "currency": "₹",
       "archivedAt": "2026-08-10T12:07:51.750Z",
@@ -532,5 +532,5 @@
       ]
     }
   ],
-  "lastUpdated": "2026-09-27T04:29:33.244Z"
+  "lastUpdated": "2026-09-27T04:29:44.357Z"
 }
